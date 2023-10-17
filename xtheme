@@ -3,18 +3,15 @@
 LC_ALL=C
 BASE="$(dirname "${BASH_SOURCE:-$0}")"
 
-XTHEME_DIR="$HOME/.xtheme"
-
 # -----------------------------------------------------------------------------
 # Defaults
 # -----------------------------------------------------------------------------
+XTHEME_DIR="$HOME/.xtheme"
 DEFAULT_CURSOR_COLOR='#FFA500'
 PREFER_DARK_THEME=1
 THEME_BASE_SCALE=15
 THEME_COLOR_SCALE=15
 
-# -----------------------------------------------------------------------------
-# RGB functions
 # -----------------------------------------------------------------------------
 min() {
     printf "%s\n" $@ | sort -g | head -n1 2>/dev/null
@@ -24,18 +21,25 @@ max() {
     printf "%s\n" $@ | sort -gr | head -n1 2>/dev/null
 }
 
-# -----------------------------------------------------------------------------
-re_pct="^[-+]?([0-9]+\.?[0-9]*\%)|([0-9]*\.{1}[0-9]+\%)$"
+fatal() {
+    echo -e "\033[31mFatal [${FUNCNAME[1]}]: ${@}\033[0m" >&2
+    kill -9 $$
+}
 
+# -----------------------------------------------------------------------------
+# RGB functions
+# -----------------------------------------------------------------------------
 hex_to_rgb() {
     local color=${1/\#/}
     printf "%d %d %d" \
-        0x${color:0:2} 0x${color:2:2} 0x${color:4:2}
+        0x${color:0:2} 0x${color:2:2} 0x${color:4:2} \
+        || fatal "invalid hex value"
 }
 
 rgb_to_hex() {
     printf "#%02X%02X%02X" \
-        ${1:-0} ${2:-0} ${3:-0}
+        ${1:-0} ${2:-0} ${3:-0} \
+        || fatal "invalid rgb value"
 }
 
 rgb_to_hsv() {
@@ -102,7 +106,7 @@ hsv_to_rgb() {
     [[ $i -eq 5 ]] && \
         rgb_to_hex $v $p $q && return
 
-    return 1
+    fatal "invalid conversion"
 }
 
 
@@ -110,7 +114,7 @@ rgb_value() {
     local HSV=( $(rgb_to_hsv ${1}) )
     local v=${HSV[2]}; [[ $v -gt 100 ]] && v=100
 
-    [[ "${2}" =~ ^([+-]?)([0-9]+)(%?)$ ]] || return 1
+    [[ "${2}" =~ ^([+-]?)([0-9]+)(%?)$ ]] || fatal "invalid value"
     local rel=${BASH_REMATCH[1]}
     local val=${BASH_REMATCH[2]}
     local pcn=${BASH_REMATCH[3]}
@@ -124,32 +128,6 @@ rgb_value() {
 
     hsv_to_rgb ${HSV[0]} ${HSV[1]} $v
 }
-
-isvalue() {
-    [[ "${1}" =~ $re_flt || "${1}" =~ $re_pct ]]
-}
-
-value() {
-    local v m p
-
-    if isvalue "${1}"; then
-        if [[ "${1}" =~ $re_pct ]]; then
-            v=${1}
-            p='%'
-        else
-            v=${1}
-        fi
-
-        [[ "${1}" =~ ^[\+\-]{1} ]] && m='rel' || m='abs'
-
-        echo $v $m $p
-        return 0
-    fi
-
-    return 1
-}
-
-
 
 # -----------------------------------------------------------------------------
 # Color-palette functions
@@ -183,10 +161,8 @@ import_xrdb_colors() {
 import_image_colors() {
 	local colors
 
-	if ! type -p convert >/dev/null 2>&1; then
-		echo "Error: imagemagick not found"
-		return 1
-	fi
+	type -p convert >/dev/null 2>&1 \
+		|| fatal "imagemagick not found"
 
     colors=(
         $(convert "${1}" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null)
@@ -280,6 +256,32 @@ preview_xtheme() {
         [[ $i == 7 || $i == 15 ]] \
             && echo -e "\033[0m" || echo -n "  "
     done
+}
+
+apply() {
+    local data
+    local SRCE="${1/\~/$HOME}"
+    local DEST="${2/\~/$HOME}"
+
+    if [[ ! -f "$SRCE" ]]; then
+        error "template '${SRCE/$HOME/\~}' not existing!"
+        return 1
+    fi
+
+    rm    -f "$DEST" > /dev/null 2>&1
+    mkdir -p "$(dirname "${DEST}")" > /dev/null 2>&1
+
+    while read -r data; do
+        local IFS=$'\x1B'
+
+        data="${data//\\/\\x5C}"
+        data="${data//\"/\\x22}"
+        data=$'\x22'$data$'\x22'
+
+        eval echo -e ${data} >> $DEST 2>/dev/null \
+            || return 1
+
+    done < $SRCE
 }
 
 # -----------------------------------------------------------------------------
