@@ -1,0 +1,328 @@
+#!/usr/bin/env bash
+
+LC_ALL=C
+BASE="$(dirname "${BASH_SOURCE:-$0}")"
+
+XTHEME_DIR="$HOME/.xtheme"
+
+# -----------------------------------------------------------------------------
+# Defaults
+# -----------------------------------------------------------------------------
+DEFAULT_CURSOR_COLOR='#FFA500'
+PREFER_DARK_THEME=1
+THEME_BASE_SCALE=15
+THEME_COLOR_SCALE=15
+
+# -----------------------------------------------------------------------------
+# RGB functions
+# -----------------------------------------------------------------------------
+min() {
+    printf "%s\n" $@ | sort -g | head -n1 2>/dev/null
+}
+
+max() {
+    printf "%s\n" $@ | sort -gr | head -n1 2>/dev/null
+}
+
+# -----------------------------------------------------------------------------
+re_pct="^[-+]?([0-9]+\.?[0-9]*\%)|([0-9]*\.{1}[0-9]+\%)$"
+
+hex_to_rgb() {
+    local color=${1/\#/}
+    printf "%d %d %d" \
+        0x${color:0:2} 0x${color:2:2} 0x${color:4:2}
+}
+
+rgb_to_hex() {
+    printf "#%02X%02X%02X" \
+        ${1:-0} ${2:-0} ${3:-0}
+}
+
+rgb_to_hsv() {
+    local RGB=( $(hex_to_rgb ${1}) )
+    local r=${RGB[0]} g=${RGB[1]} b=${RGB[2]}
+
+    local minc=$(min $r $g $b)
+    local maxc=$(max $r $g $b)
+
+    local v=$(( $maxc * 100 / 255 ))
+    [[ $v -gt 100 ]] && v=100
+
+    [[ "$minc" == "$maxc" ]] && \
+        echo 0 0 $v && return
+
+    local s=$(( ($maxc - $minc) * 100 / $maxc ))
+    [[ $s -gt 100 ]] && s=100
+
+    local h=0
+    local rc=$(( ($maxc - $r) * 100 / ($maxc - $minc) ))
+    local gc=$(( ($maxc - $g) * 100 / ($maxc - $minc) ))
+    local bc=$(( ($maxc - $b) * 100 / ($maxc - $minc) ))
+
+    if [[ $r == $maxc ]]; then
+        h=$(( $bc - $gc ))
+    elif [[ $g == $maxc ]]; then
+        h=$(( 200 + $rc - $bc ))
+    else
+        h=$(( 400 + $gc - $rc ))
+    fi
+
+    echo $(( $h * 360 / 600 % 360 )) $s $v
+}
+
+hsv_to_rgb() {
+    local h=$(( ${1:-0} % 360 ))
+    local s=${2:-0}; [[ $s -gt 100 ]] && s=100
+    local v=${3:-0}; [[ $v -gt 100 ]] && v=100
+
+    v=$(( $v * 255 / 100 ))
+    h=$(( $h * 100 / 360 ))
+
+    [[ $s -eq 0 ]] && \
+        rgb_to_hex $v $v $v && return
+
+    local i=$(( $h * 6 / 100 ))
+    local f=$(( $h * 6 - $i * 100 ))
+    local p=$(( $v * (100 - $s) / 100 ))
+    local q=$(( $v * (10000 - $s * $f) / 10000 ))
+    local t=$(( $v * (10000 - $s * (100 - $f)) / 10000 ))
+
+    i=$(( $i % 6 ))
+
+    [[ $i -eq 0 ]] && \
+        rgb_to_hex $v $t $p && return
+    [[ $i -eq 1 ]] && \
+        rgb_to_hex $q $v $p && return
+    [[ $i -eq 2 ]] && \
+        rgb_to_hex $p $v $t && return
+    [[ $i -eq 3 ]] && \
+        rgb_to_hex $p $q $v && return
+    [[ $i -eq 4 ]] && \
+        rgb_to_hex $t $p $v && return
+    [[ $i -eq 5 ]] && \
+        rgb_to_hex $v $p $q && return
+
+    return 1
+}
+
+
+rgb_value() {
+    local HSV=( $(rgb_to_hsv ${1}) )
+    local v=${HSV[2]}; [[ $v -gt 100 ]] && v=100
+
+    [[ "${2}" =~ ^([+-]?)([0-9]+)(%?)$ ]] || return 1
+    local rel=${BASH_REMATCH[1]}
+    local val=${BASH_REMATCH[2]}
+    local pcn=${BASH_REMATCH[3]}
+
+    # percent value
+    [[ "$pcn" ]] \
+        && val=$(( $v * $val / 100 ))
+	# absolute value
+    [[ "$rel" ]] \
+        && eval "v=$(( $v $rel $val ))" || v=$val
+
+    hsv_to_rgb ${HSV[0]} ${HSV[1]} $v
+}
+
+isvalue() {
+    [[ "${1}" =~ $re_flt || "${1}" =~ $re_pct ]]
+}
+
+value() {
+    local v m p
+
+    if isvalue "${1}"; then
+        if [[ "${1}" =~ $re_pct ]]; then
+            v=${1}
+            p='%'
+        else
+            v=${1}
+        fi
+
+        [[ "${1}" =~ ^[\+\-]{1} ]] && m='rel' || m='abs'
+
+        echo $v $m $p
+        return 0
+    fi
+
+    return 1
+}
+
+
+
+# -----------------------------------------------------------------------------
+# Color-palette functions
+# -----------------------------------------------------------------------------
+xrdbq() {
+    xrdb -query | grep -w "${1}:" | tail -n1 | cut -f 2
+}
+
+# Clear all color-variables
+clear_colors() {
+    background=
+    foreground=
+    cursor=
+
+    for i in {0..15}; do
+        eval "color${i}="
+    done
+}
+
+# Import colors from xrdb config
+import_xrdb_colors() {
+    background=$(xrdbq background)
+    foreground=$(xrdbq foreground)
+    cursor=$(xrdbq cursor)
+
+    for i in {0..15}; do
+        eval "color${i}=$(xrdbq color${i})"
+    done
+}
+
+import_image_colors() {
+	local colors
+
+	if ! type -p convert >/dev/null 2>&1; then
+		echo "Error: imagemagick not found"
+		return 1
+	fi
+
+    colors=(
+        $(convert "${1}" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null)
+    )
+
+    color0=$(rgb_value ${colors[0]} +15)
+    color1=${colors[8]} 
+    color2=${colors[9]}
+    color3=${colors[10]}
+    color4=${colors[11]}
+    color5=${colors[12]}
+    color6=${colors[13]}
+    color7=${colors[15]}
+}
+
+
+refill_colors() {
+    local color
+
+    # black
+    color0=${color0:-#282a2e}
+    # red
+    color1=${color1:-#a54242}
+    # green
+    color2=${color2:-#8c9440}
+    # yellow
+    color3=${color3:-#de935f}
+    # blue
+    color4=${color4:-#5f819d}
+    # magenta
+    color5=${color5:-#85678f}
+    # cyan
+    color6=${color6:-#5e8d87}
+    # white
+    color7=${color7:-#707880}
+
+    color8=${color8:-$(rgb_value $color0 +$THEME_COLOR_SCALE)}
+    color9=${color9:-$(rgb_value $color1 +$THEME_COLOR_SCALE)}
+    color10=${color10:-$(rgb_value $color2 +$THEME_COLOR_SCALE)}
+    color11=${color11:-$(rgb_value $color3 +$THEME_COLOR_SCALE)}
+    color12=${color12:-$(rgb_value $color4 +$THEME_COLOR_SCALE)}
+    color13=${color13:-$(rgb_value $color5 +$THEME_COLOR_SCALE)}
+    color14=${color14:-$(rgb_value $color6 +$THEME_COLOR_SCALE)}
+    color15=${color15:-$(rgb_value $color7 +$THEME_COLOR_SCALE)}
+
+    if [[ ! "${PREFER_DARK_THEME}" ]]; then
+        background=
+        foreground=
+        color=$color0; color0=$color7; color7=$color
+        color=$color8; color8=$color15; color15=$color
+    fi
+
+    if [[ ! $background ]]; then
+        background=$(rgb_value $color0 -$THEME_BASE_SCALE)
+    fi
+
+    foreground=${foreground:-$(rgb_value $color7 -$THEME_BASE_SCALE)}
+    cursor=${cursor:-$DEFAULT_CURSOR_COLOR}
+}
+
+# -----------------------------------------------------------------------------
+# XTheme functions
+# -----------------------------------------------------------------------------
+preview_xtheme() {
+    local color
+
+    echo -n "background: "
+    printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
+    printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $foreground) 
+    echo -en "  $background  \033[0m  "
+
+    echo -n "foreground: "
+    printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $foreground) 
+    printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
+    echo -en "  $foreground  \033[0m  "
+
+    echo -n "cursor: "
+    printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $cursor) 
+    printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
+    echo -en "  $cursor  \033[0m  "
+
+    echo
+    printf "─%.0s" $(seq 70); echo
+
+    for i in {0..15}; do
+        eval "color=$(echo $(echo "\$color${i}"))"
+        printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $color)
+        #printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
+        echo -n "$color"
+
+        [[ $i == 7 || $i == 15 ]] \
+            && echo -e "\033[0m" || echo -n "  "
+    done
+}
+
+# -----------------------------------------------------------------------------
+# TEST's ----------------------------------------------------------------------
+
+#echo "rgb #112233:          $(hex_to_rgb '#112233')"
+#echo "rgb_to_hsv #112233:   $(rgb_to_hsv '#112233') (210, 67, 20)"  
+#echo "hsv_to_rgb 210 67 20: $(hsv_to_rgb 210 67 20) (#112233)"
+#echo
+
+#echo "hsv_to_rgb 210 0 20: $(hsv_to_rgb 210 0 20) (#333333)"
+#echo "rgb_value: $(rgb_value "#112233" 10)"
+#echo "rgb_value: $(rgb_value "#112233" +10)"
+#echo "rgb_value: $(rgb_value "#112233" -10)"
+#echo "rgb_value: $(rgb_value "#112233" -10%)"
+#echo "rgb_value: $(rgb_value "#112233" -%)"
+#echo
+#echo
+
+#echo "Clear theme:"
+#clear_colors
+#refill_colors
+#preview_xtheme
+#echo
+
+#echo "Clear theme light:"
+#PREFER_DARK_THEME=
+#clear_colors
+#refill_colors
+#preview_xtheme
+#PREFER_DARK_THEME=1
+#echo
+
+#echo "Import from xrdb:"
+#clear_colors
+#import_xrdb_colors
+#refill_colors
+#preview_xtheme
+#echo
+
+echo "Import from image:"
+clear_colors
+import_image_colors "/home/madcat/Pictures/Nier/nier-2b-3.jpg"
+refill_colors
+preview_xtheme
+echo
