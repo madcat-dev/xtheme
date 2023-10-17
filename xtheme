@@ -6,12 +6,14 @@ BASE="$(dirname "${BASH_SOURCE:-$0}")"
 # -----------------------------------------------------------------------------
 # Defaults
 # -----------------------------------------------------------------------------
-XTHEME_DIR="$HOME/.xtheme"
-DEFAULT_CURSOR_COLOR='#FFA500'
-PREFER_DARK_THEME=1
-THEME_BASE_SCALE=15
-THEME_COLOR_SCALE=15
+XTHEME_CACHE="${XTHEME_CACHE:-$HOME/.xtheme}"
 
+CURSOR_COLOR=${CURSOR_COLOR:-#FFA500}
+THEME_BASE_SCALE=${THEME_BASE_SCALE:--15}
+THEME_COLOR_SCALE=${THEME_COLOR_SCALE:-+15}
+THEME_IMPORT_SCALE=${THEME_IMPORT_SCALE:-+18}
+
+PREFER_DARK_THEME=1
 # -----------------------------------------------------------------------------
 min() {
     printf "%s\n" $@ | sort -g | head -n1 2>/dev/null
@@ -22,8 +24,14 @@ max() {
 }
 
 fatal() {
-    echo -e "\033[31mFatal [${FUNCNAME[1]}]: ${@}\033[0m" >&2
-    kill -9 $$
+    echo -e "\033[31;1mfatal: ${@}\033[0m" >&2
+    echo -e "    trace: ${FUNCNAME[*]}" >&2
+    kill -9 $$ && sleep 9999
+}
+
+error() {
+    echo -e "\033[31merror: ${@}\033[0m" >&2
+    return 1
 }
 
 # -----------------------------------------------------------------------------
@@ -33,13 +41,13 @@ hex_to_rgb() {
     local color=${1/\#/}
     printf "%d %d %d" \
         0x${color:0:2} 0x${color:2:2} 0x${color:4:2} \
-        || fatal "invalid hex value"
+        || fatal "Invalid hex value"
 }
 
 rgb_to_hex() {
     printf "#%02X%02X%02X" \
         ${1:-0} ${2:-0} ${3:-0} \
-        || fatal "invalid rgb value"
+        || fatal "Invalid rgb value"
 }
 
 rgb_to_hsv() {
@@ -106,7 +114,7 @@ hsv_to_rgb() {
     [[ $i -eq 5 ]] && \
         rgb_to_hex $v $p $q && return
 
-    fatal "invalid conversion"
+    fatal "Invalid conversion"
 }
 
 
@@ -168,7 +176,7 @@ import_image_colors() {
         $(convert "${1}" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null)
     )
 
-    color0=$(rgb_value ${colors[0]} +15)
+    color0=$(rgb_value ${colors[0]} $THEME_IMPORT_SCALE)
     color1=${colors[8]} 
     color2=${colors[9]}
     color3=${colors[10]}
@@ -199,14 +207,14 @@ refill_colors() {
     # white
     color7=${color7:-#707880}
 
-    color8=${color8:-$(rgb_value $color0 +$THEME_COLOR_SCALE)}
-    color9=${color9:-$(rgb_value $color1 +$THEME_COLOR_SCALE)}
-    color10=${color10:-$(rgb_value $color2 +$THEME_COLOR_SCALE)}
-    color11=${color11:-$(rgb_value $color3 +$THEME_COLOR_SCALE)}
-    color12=${color12:-$(rgb_value $color4 +$THEME_COLOR_SCALE)}
-    color13=${color13:-$(rgb_value $color5 +$THEME_COLOR_SCALE)}
-    color14=${color14:-$(rgb_value $color6 +$THEME_COLOR_SCALE)}
-    color15=${color15:-$(rgb_value $color7 +$THEME_COLOR_SCALE)}
+    color8=${color8:-$(rgb_value $color0 $THEME_COLOR_SCALE)}
+    color9=${color9:-$(rgb_value $color1 $THEME_COLOR_SCALE)}
+    color10=${color10:-$(rgb_value $color2 $THEME_COLOR_SCALE)}
+    color11=${color11:-$(rgb_value $color3 $THEME_COLOR_SCALE)}
+    color12=${color12:-$(rgb_value $color4 $THEME_COLOR_SCALE)}
+    color13=${color13:-$(rgb_value $color5 $THEME_COLOR_SCALE)}
+    color14=${color14:-$(rgb_value $color6 $THEME_COLOR_SCALE)}
+    color15=${color15:-$(rgb_value $color7 $THEME_COLOR_SCALE)}
 
     if [[ ! "${PREFER_DARK_THEME}" ]]; then
         background=
@@ -216,11 +224,11 @@ refill_colors() {
     fi
 
     if [[ ! $background ]]; then
-        background=$(rgb_value $color0 -$THEME_BASE_SCALE)
+        background=$(rgb_value $color0 $THEME_BASE_SCALE)
     fi
 
-    foreground=${foreground:-$(rgb_value $color7 -$THEME_BASE_SCALE)}
-    cursor=${cursor:-$DEFAULT_CURSOR_COLOR}
+    foreground=${foreground:-$(rgb_value $color7 $THEME_BASE_SCALE)}
+    cursor=${cursor:-$CURSOR_COLOR}
 }
 
 # -----------------------------------------------------------------------------
@@ -260,16 +268,14 @@ preview_xtheme() {
 
 apply() {
     local data
-    local SRCE="${1/\~/$HOME}"
-    local DEST="${2/\~/$HOME}"
+    local srce="${1/\~/$HOME}"
+    local dest="${2/\~/$HOME}"
 
-    if [[ ! -f "$SRCE" ]]; then
-        error "template '${SRCE/$HOME/\~}' not existing!"
-        return 1
-    fi
+    [[ ! -f "$srce" ]] \
+        && return $(error "Template '${srce/$HOME/\~}' not existing!")
 
-    rm    -f "$DEST" > /dev/null 2>&1
-    mkdir -p "$(dirname "${DEST}")" > /dev/null 2>&1
+    rm    -f "$dest" > /dev/null 2>&1
+    mkdir -p "$(dirname "${dest}")" > /dev/null 2>&1
 
     while read -r data; do
         local IFS=$'\x1B'
@@ -278,53 +284,60 @@ apply() {
         data="${data//\"/\\x22}"
         data=$'\x22'$data$'\x22'
 
-        eval echo -e ${data} >> $DEST 2>/dev/null \
-            || return 1
+        eval echo -e ${data} >> $dest 2>/dev/null \
+            || return $(error "Template '${dest/$HOME/\~}' not save!")
+    done < $srce
+}
 
-    done < $SRCE
+find_resource() {
+    local resource="${1}"
+    local name="${2/\~/$HOME}"
+    local path= paths=(
+        "$(dirname "${BASH_SOURCE:-$0}")/${resource}s"
+        "${XTHEME_CACHE}/${resource}s"
+        "$HOME/.local/share/xtheme/${resource}s"
+        "/usr/local/share/xtheme/${resource}s"
+        "/usr/share/xtheme/${resource}s"
+        "/"
+    )
+
+    for path in ${paths[*]}; do
+        path="$path/$name"
+        [[ -e "$path" ]] \
+            && echo "$(realpath "$path")" && return
+    done
+
+    error "Resource $resource '${2}' not found"
+}
+
+template() {
+    local path="$(find_resource template "${1}")"
+    local name="$(basename "${1}")"
+    local dest="${2/\~/$HOME}"
+
+    [[ ! -e "${path}" ]] \
+        && echo -e "\033[31m[-] template .../$name is not installed!\033[0m" \
+        && return 1
+
+    [[ ! "${dest}" ]] && dest="$XTHEME_CACHE"
+
+    if [[ -d "$path" ]]; then
+        DESTINATION="$dest"
+        source "$path/install.sh" \
+            && echo -e "\033[32m[+] template .../$name is installed\033[0m" \
+            && return 0
+    else
+        [[ -d "$dest" || ${dest: -1} == '/' ]] && dest="$dest/$name"
+        apply "$path" "$dest" \
+            && echo -e "\033[32m[+] template .../$name is installed\033[0m" \
+            && return 0
+    fi
+
+    echo -e "\033[31m[-] template .../$name is not installed!\033[0m"
+    return 1
 }
 
 # -----------------------------------------------------------------------------
-# TEST's ----------------------------------------------------------------------
+mkdir -p "$XTHEME_CACHE"
 
-#echo "rgb #112233:          $(hex_to_rgb '#112233')"
-#echo "rgb_to_hsv #112233:   $(rgb_to_hsv '#112233') (210, 67, 20)"  
-#echo "hsv_to_rgb 210 67 20: $(hsv_to_rgb 210 67 20) (#112233)"
-#echo
-
-#echo "hsv_to_rgb 210 0 20: $(hsv_to_rgb 210 0 20) (#333333)"
-#echo "rgb_value: $(rgb_value "#112233" 10)"
-#echo "rgb_value: $(rgb_value "#112233" +10)"
-#echo "rgb_value: $(rgb_value "#112233" -10)"
-#echo "rgb_value: $(rgb_value "#112233" -10%)"
-#echo "rgb_value: $(rgb_value "#112233" -%)"
-#echo
-#echo
-
-#echo "Clear theme:"
-#clear_colors
-#refill_colors
-#preview_xtheme
-#echo
-
-#echo "Clear theme light:"
-#PREFER_DARK_THEME=
-#clear_colors
-#refill_colors
-#preview_xtheme
-#PREFER_DARK_THEME=1
-#echo
-
-#echo "Import from xrdb:"
-#clear_colors
-#import_xrdb_colors
-#refill_colors
-#preview_xtheme
-#echo
-
-echo "Import from image:"
-clear_colors
-import_image_colors "/home/madcat/Pictures/Nier/nier-2b-3.jpg"
-refill_colors
-preview_xtheme
-echo
+source "tests/all.sh"; exit 1
