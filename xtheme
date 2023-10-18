@@ -10,7 +10,7 @@ LC_ALL=C
 # -----------------------------------------------------------------------------
 XTHEME_CACHE="${XTHEME_CACHE:-$HOME/.xtheme}"
 
-XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-#FFA500}
+XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-#FFA501}
 XTHEME_BASE_SCALE=${XTHEME_BASE_SCALE:--15}
 XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-+15}
 XTHEME_IMPORT_SCALE=${XTHEME_IMPORT_SCALE:-+18}
@@ -58,7 +58,8 @@ rgb_to_hex() {
 }
 
 rgb_to_hsv() {
-    local RGB=( $(hex_to_rgb ${1}) )
+    local RGB
+    IFS=" " read -a RGB <<< "$(hex_to_rgb ${1})"
     local r=${RGB[0]} g=${RGB[1]} b=${RGB[2]}
 
     local minc=$(min $r $g $b)
@@ -125,7 +126,8 @@ hsv_to_rgb() {
 }
 
 rgb_value() {
-    local HSV=( $(rgb_to_hsv ${1}) )
+    local HSV
+    IFS=" " read -a HSV <<< "$(rgb_to_hsv ${1})"
     local v=${HSV[2]}; [[ $v -gt 100 ]] && v=100
 
     [[ "${2}" =~ ^([+-]?)([0-9]+)(%?)$ ]] || fatal "invalid value"
@@ -333,14 +335,13 @@ template() {
         && echo -e "\033[31m[-] template .../$name is not installed!\033[0m" \
         && return 1
 
-    [[ ! "${dest}" ]] && dest="$XTHEME_CACHE"
-
     if [[ -d "$path" ]]; then
         DESTINATION="$dest"
         source "$path/install.sh" \
             && echo -e "\033[32m[+] template .../$name is installed\033[0m" \
             && return 0
     else
+        [[ ! "${dest}" ]] && dest="$XTHEME_CACHE"
         [[ -d "$dest" || ${dest: -1} == '/' ]] && dest="$dest/$name"
         apply "$path" "$dest" \
             && echo -e "\033[32m[+] template .../$name is installed\033[0m" \
@@ -355,8 +356,6 @@ template() {
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
-mkdir -p "$XTHEME_CACHE"
-
 [[ "${XTHEME_IS_LIB}" ]] && return # run as a library
 
 while [ -n "${1}" ]; do
@@ -421,12 +420,17 @@ fi
 
 # Apply changes ---------------------------------------------------------------
 if [[ "${XTHEME_INSTALL}" ]]; then
+    mkdir -p "$XTHEME_CACHE"
+
     # Templates...
     template colors.sh
     template colors.css
     template colors.json
     template colors-rofi.rasi
+    template colors-kitty.conf
+    template colors-xfce4-terminal.theme    #~/.local/share/xfce4/terminal/colorschemes/xtheme.theme
 
     # Modules...
     template xrdb
+    template kvantum ~/.xtheme/kvantum
 fi
