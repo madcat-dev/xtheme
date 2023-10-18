@@ -11,9 +11,9 @@ LC_ALL=C
 XTHEME_CACHE="${XTHEME_CACHE:-$HOME/.xtheme}"
 
 XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-#FFA501}
-XTHEME_BASE_SCALE=${XTHEME_BASE_SCALE:--15}
-XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-+15}
 XTHEME_IMPORT_SCALE=${XTHEME_IMPORT_SCALE:-+18}
+XTHEME_BASE_COLOR_SCALE=${XTHEME_BASE_COLOR_SCALE:--15}
+XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-+15}
 
 XTHEME_PREFER_DARK_THEME=1
 
@@ -51,7 +51,7 @@ error() {
 # -----------------------------------------------------------------------------
 # RGB functions
 # -----------------------------------------------------------------------------
-hex_to_rgb() {
+rgb_from_hex() {
     local color=${1/\#/}
     printf "%d %d %d" \
         0x${color:0:2} 0x${color:2:2} 0x${color:4:2} \
@@ -69,7 +69,7 @@ rgb_to_hex() {
 
 rgb_to_hsv() {
     local RGB
-    IFS=" " read -a RGB <<< "$(hex_to_rgb ${1})"
+    IFS=" " read -a RGB <<< "$(rgb_from_hex ${1})"
     local r=$(lim ${RGB[0]})
     local g=$(lim ${RGB[1]})
     local b=$(lim ${RGB[2]})
@@ -234,14 +234,14 @@ import_image_colors() {
 apply_colors() {
     local i color
 
-    color0=${color0:-#282a2e}
-    color1=${color1:-#a54242}
-    color2=${color2:-#8c9440}
-    color3=${color3:-#de935f}
-    color4=${color4:-#5f819d}
-    color5=${color5:-#85678f}
-    color6=${color6:-#5e8d87}
-    color7=${color7:-#707880}
+    color0=${color0:-#000000}
+    color1=${color1:-#800000}
+    color2=${color2:-#008000}
+    color3=${color3:-#808000}
+    color4=${color4:-#000080}
+    color5=${color5:-#800080}
+    color6=${color6:-#008080}
+    color7=${color7:-#c0c0c0}
 
     for i in {8..15}; do
         local color_l="color${i}"
@@ -250,10 +250,10 @@ apply_colors() {
     done
 
     if [[ ! $background ]]; then
-        background=$(rgb_value $color0 $XTHEME_BASE_SCALE)
+        background=$(rgb_value $color0 $XTHEME_BASE_COLOR_SCALE)
     fi
 
-    foreground=${foreground:-$(rgb_value $color7 $XTHEME_BASE_SCALE)}
+    foreground=${foreground:-$(rgb_value $color7 $XTHEME_BASE_COLOR_SCALE)}
     cursor=${cursor:-$XTHEME_CURSOR_COLOR}
 
     if [[ ! "${XTHEME_PREFER_DARK_THEME}" ]]; then
@@ -270,18 +270,18 @@ preview_xtheme() {
     local i color
 
     echo -n "background: "
-    printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
-    printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $foreground) 
+    printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $background)
+    printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $foreground) 
     echo -en "  $background  \033[0m  "
 
     echo -n "foreground: "
-    printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $foreground) 
-    printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
+    printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $foreground) 
+    printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $background)
     echo -en "  $foreground  \033[0m  "
 
     echo -n "cursor: "
-    printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $cursor) 
-    printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
+    printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $cursor) 
+    printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $background)
     echo -en "  $cursor  \033[0m  "
 
     echo
@@ -289,7 +289,7 @@ preview_xtheme() {
 
     for i in {0..15}; do
         color="color${i}"
-        printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb ${!color})
+        printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex ${!color})
         echo -n "${!color}"
 
         [[ $i == 7 || $i == 15 ]] \
