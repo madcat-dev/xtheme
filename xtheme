@@ -290,6 +290,7 @@ preview_xtheme() {
     for i in {0..15}; do
         color="color${i}"
         printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex ${!color})
+        printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $background)
         echo -n "${!color}"
 
         [[ $i == 7 || $i == 15 ]] \
