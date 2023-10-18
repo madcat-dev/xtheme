@@ -6,16 +6,25 @@ LC_ALL=C
     XTHEME_IS_LIB=True || XTHEME_IS_LIB=
 
 # Defaults --------------------------------------------------------------------
-XTHEME_CACHE="${XTHEME_CACHE:-$HOME/.xtheme}"
-
-XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-'#FFA501'}
-XTHEME_IMPORT_SCALE=${XTHEME_IMPORT_SCALE:-'+18'}
-XTHEME_BASE_COLOR_SCALE=${XTHEME_BASE_COLOR_SCALE:-'-15'}
-XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-'+15'}
-XTHEME_BLACK_COLOR_SCALE=${XTHEME_COLOR_SCALE:-'+20'}
+XTHEME_CACHE="$HOME/.xtheme"
 
 XTHEME_PREFER_DARK_THEME=1
+XTHEME_CURSOR_COLOR="#FFA501"
+XTHEME_IMPORT_SCALE="+18"
+XTHEME_BASE_COLOR_SCALE="-15"
+XTHEME_COLOR_SCALE="100"
+XTHEME_BLACK_COLOR_SCALE="+25"
 
+WELCOME='
+ `.`    `.`  `........`  `.`    `.   `........   ``     `.`  `........  
+ =#"    :#+  ="/:$$"/"~  /#^    :#+  ^#!//////, -$#*   ,&#"  /#!//////. 
+ .!@*``/@;.     -@#.     :@/    !@=  *@:        -@##+ `;$@;  "@/        
+  `^$&&$^`      -@#.     "@:~~~~$@=  *@!~~~~-   -@;/$,/&^@;  "@;~~~~-   
+   ,!@@!.       -@#.     "@!^^^*$@=  *@&^^^^=`  -@&.;$#~=@;  "@!^^^^+   
+  ^#&~+&$=      -@#.     "@/    !@=  *@:        -@$`.*+ ^@;  "@/        
+ +@&.  .$@+     -@#.     :@/    !@=  *@!++++++. -@$.    *@;  "@;++++++` 
+ ,=-    ~=,     `=+      -=,    ~=.  ,========. `=+     ,=~  -========` 
+'
 # -----------------------------------------------------------------------------
 xrdbq() {
     xrdb -query | grep -w "${1}:" | tail -n1 | cut -f 2
@@ -374,6 +383,8 @@ template() {
 while [ -n "${1}" ]; do
     case "${1}" in
         --help|-h)
+            echo -e "$WELCOME"
+            exit 0
             ;;
         --light|-l)
             XTHEME_PREFER_DARK_THEME=
