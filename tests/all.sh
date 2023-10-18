@@ -1,5 +1,13 @@
+#!/usr/bin/env bash
+
+LC_ALL=C
+BASE="$(dirname "${BASH_SOURCE:-$0}")"
+
+source "$BASE/../xtheme"
+
 # TEST's ----------------------------------------------------------------------
-#echo "rgb #112233:          $(hex_to_rgb '#112233')"
+
+echo "rgb #112233:          $(hex_to_rgb '#112233')"
 #echo "rgb_to_hsv #112233:   $(rgb_to_hsv '#112233') (210, 67, 20)"  
 #echo "hsv_to_rgb 210 67 20: $(hsv_to_rgb 210 67 20) (#112233)"
 #echo
@@ -17,40 +25,6 @@
 #echo
 #echo
 
-echo "Clear theme:"
-clear_colors
-refill_colors
-preview_xtheme
-echo
-
-echo "Clear theme light:"
-PREFER_DARK_THEME=
-clear_colors
-refill_colors
-preview_xtheme
-PREFER_DARK_THEME=1
-echo
-
-echo "Import from xrdb:"
-clear_colors
-import_xrdb_colors
-refill_colors
-preview_xtheme
-echo
-
-echo "Import from image: .../Nier/nier-2b-3.jpg"
-clear_colors
-import_image_colors "/home/madcat/Pictures/Nier/nier-2b-3.jpg"
-refill_colors
-preview_xtheme
-echo
-
-echo "Import from image: .../Battletech/BT Wallpapers 2023 Northwind Highlanders.png"
-clear_colors
-import_image_colors "/home/madcat/Pictures/Battletech/BT Wallpapers 2023 Northwind Highlanders.png"
-refill_colors
-preview_xtheme
-echo
 
 #echo "Find: $(find template colors.sh)"
 #echo "Find: $(find template ~/work/xtheme/templates/colors.sh)"
