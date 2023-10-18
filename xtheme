@@ -5,15 +5,13 @@ LC_ALL=C
 [[ "${0}" != "${BASH_SOURCE}" ]] && \
     XTHEME_IS_LIB=True || XTHEME_IS_LIB=
 
-# -----------------------------------------------------------------------------
-# Defaults
-# -----------------------------------------------------------------------------
+# Defaults --------------------------------------------------------------------
 XTHEME_CACHE="${XTHEME_CACHE:-$HOME/.xtheme}"
 
 XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-#FFA501}
 XTHEME_IMPORT_SCALE=${XTHEME_IMPORT_SCALE:-+18}
 XTHEME_BASE_COLOR_SCALE=${XTHEME_BASE_COLOR_SCALE:--15}
-XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-+15}
+XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-+20}
 
 XTHEME_PREFER_DARK_THEME=1
 
@@ -48,9 +46,7 @@ error() {
     return 1
 }
 
-# -----------------------------------------------------------------------------
-# RGB functions
-# -----------------------------------------------------------------------------
+# RGB functions ---------------------------------------------------------------
 rgb_from_hex() {
     local color=${1/\#/}
     printf "%d %d %d" \
@@ -160,9 +156,7 @@ rgb_value() {
     hsv_to_rgb ${HSV[0]} ${HSV[1]} $v
 }
 
-# -----------------------------------------------------------------------------
-# Color-management functions
-# -----------------------------------------------------------------------------
+# Color-management functions --------------------------------------------------
 # Clear all color-variables
 clear_colors() {
     local i
@@ -263,9 +257,7 @@ apply_colors() {
     fi
 }
 
-# -----------------------------------------------------------------------------
-# XTheme functions
-# -----------------------------------------------------------------------------
+# XTheme functions ------------------------------------------------------------
 preview_xtheme() {
     local i color
 
@@ -371,7 +363,7 @@ template() {
 
 
 # -----------------------------------------------------------------------------
-# Main
+#   MAIN
 # -----------------------------------------------------------------------------
 [[ "${XTHEME_IS_LIB}" ]] && return # run as a library
 
