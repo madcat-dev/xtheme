@@ -7,15 +7,12 @@ COLORS_VARIANT="${color2}"
 
 mkdir -p "$DESTINATION"        2>/dev/null
 rm   -rf "$DESTINATION/Tela" 2>/dev/null
-
 tar -xzf "$TEMPLATE/Tela.tar.gz" -C "$DESTINATION/" || return 1
 
 DESTINATION="$DESTINATION/Tela"
-
 if [[ ! -e "$DESTINATION" ]]; then
 	return 1
 fi
-
 
 if [[ "${XTHEME_PREFER_DARK_THEME:-1}" ]]; then
     # 35 / 65
