@@ -430,11 +430,13 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     template colors-kitty.conf
     template colors-xfce4-terminal.theme \
         ~/.local/share/xfce4/terminal/colorschemes/xtheme.theme
+    template colors-gtk.css
+    template colors-gtk.rc
 
     # Modules...
     template xrdb
-    template kvantum                ~/.xtheme/Kvantum/XTheme
-    template gtk-icon-theme/Tela    ~/.xtheme/icons
-    template gtk-theme/FlatColor    ~/.xtheme/themes
+    template kvantum
+    template gtk-icon-theme/Tela
+    template gtk-theme/FlatColor
     template telegram
 fi
