@@ -140,7 +140,10 @@ hsv_to_rgb() {
 rgb_value() {
     local HSV
     IFS=" " read -a HSV <<< "$(rgb_to_hsv ${1})"
-    local v=${HSV[2]}; [[ $v -gt 100 ]] && v=100
+    local v=${HSV[2]}
+
+    [[ ! "${2}" ]] \
+        && echo $v && return 0
 
     [[ "${2}" =~ ^([+-]?)([0-9]+)(%?)$ ]] || fatal "invalid value"
     local rel=${BASH_REMATCH[1]}
