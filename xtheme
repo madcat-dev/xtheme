@@ -30,6 +30,13 @@ max() {
     printf "%s\n" $@ | sort -gr | head -n1 2>/dev/null
 }
 
+lim() {
+    local val="${1:-0}" l="${2:-0}" h="${3:-255}"
+    [[ "$val" -lt "$l" ]] && val="$l"
+    [[ "$val" -gt "$h" ]] && val="$h"
+    echo "$val"
+}
+
 fatal() {
     echo -e "\033[31;1mfatal: ${@}\033[0m" >&2
     echo -e "    trace: ${FUNCNAME[*]}" >&2
@@ -52,8 +59,11 @@ hex_to_rgb() {
 }
 
 rgb_to_hex() {
-    printf "#%02X%02X%02X" \
-        ${1:-0} ${2:-0} ${3:-0} \
+    local r=$(lim ${1:-0})
+    local g=$(lim ${2:-0})
+    local b=$(lim ${3:-0})
+
+    printf "#%02X%02X%02X" $r $g $b \
         || fatal "Invalid rgb value"
 }
 

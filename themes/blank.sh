@@ -4,18 +4,18 @@
 
 # Colors ----------------------------------------------------------------------
 # black
-color0="#3B4252"
+color0=""
 # red
-color1="#BF616A"
+color1=""
 # green
-color2="#A3BE8C"
+color2=""
 # yellow
-color3="#EBCB8B"
+color3=""
 # blue
-color4="#81A1C1"
+color4=""
 # magenta
-color5="#B48EAD"
+color5=""
 # cyan
-color6="#88C0D0"
+color6=""
 # white
-color7="#E5E9F0"
+color7=""
