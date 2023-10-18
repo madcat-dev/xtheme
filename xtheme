@@ -299,9 +299,8 @@ find_resource() {
     )
 
     for path in ${paths[*]}; do
-        path="$path/$name"
-        [[ -e "$path" ]] \
-            && echo "$(realpath "$path")" && return
+        [[ -e "$path/$name" ]] \
+            && echo "$(realpath "$path/$name")" && return
     done
 
     [[ -e "$name" ]] \
