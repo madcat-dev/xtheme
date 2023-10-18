@@ -423,20 +423,20 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     mkdir -p "$XTHEME_CACHE"
 
     # Templates...
-    template colors.sh
-    template colors.css
-    template colors.json
-    template colors-rofi.rasi
-    template colors-kitty.conf
-    template colors-xfce4-terminal.theme \
-        ~/.local/share/xfce4/terminal/colorschemes/xtheme.theme
     template colors-gtk.css
     template colors-gtk.rc
+    template colors-kitty.conf
+    template colors-rofi.rasi
+    template colors-xfce4-terminal.theme \
+        ~/.local/share/xfce4/terminal/colorschemes/xtheme.theme
+    template colors.css
+    template colors.json
+    template colors.sh
 
     # Modules...
-    template xrdb
-    template kvantum
     template gtk-icon-theme/Tela
     template gtk-theme/FlatColor
+    template kvantum
     template telegram
+    template xrdb
 fi
