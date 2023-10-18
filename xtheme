@@ -434,5 +434,6 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     #template xrdb
     #template kvantum    ~/.xtheme/kvantum # удалить назначение
     #template gtk-icon-theme/Tela    ~/.xtheme
+    template gtk-theme/FlatColor    ~/.xtheme
 
 fi
