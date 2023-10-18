@@ -6,6 +6,7 @@ DESTINATION="${DESTINATION:-$CACHE}"
 
 mkdir -p "$DESTINATION"				2>/dev/null
 rm   -rf "$DESTINATION/FlatColor"	2>/dev/null
+
 tar -xzf "$TEMPLATE/FlatColor.tar.gz" -C "$DESTINATION/" || return 1
 
 apply "$DESTINATION/FlatColor/gtk-2.0/gtkrc.base" \

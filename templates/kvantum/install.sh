@@ -5,6 +5,7 @@ TEMPLATE="$(dirname "$BASH_SOURCE")"
 DESTINATION="${DESTINATION:-$CACHE}"
 
 mkdir -p "$DESTINATION" > /dev/null 2>&1
+
 cp "$TEMPLATE/XTheme.svg" "$DESTINATION" || return 1
 
 # background
