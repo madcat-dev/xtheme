@@ -1,7 +1,6 @@
 # Kvantum variables installer
 #     Module from 'xtheme'
 CACHE="$HOME/.config/Kvantum/XTheme"
-
 TEMPLATE="$(dirname "$BASH_SOURCE")"
 DESTINATION="${DESTINATION:-$CACHE}"
 
