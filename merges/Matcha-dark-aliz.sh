@@ -4,11 +4,11 @@
 background="#222222"    # gtk3.background.background-color
 foreground="#cbbfbf"    # gtk3.background.color
 # black
-color0="#262626"        # gtk3.view.background-color
+color0="#262626"        # gtk3.view>text.background-color
 color8="#595959"        # color0 +20
 # green
 color2="#F0544C"        # gtk3.selection.background-color
-color10="#ff5951"       # color2 +20
+color10="#ff5951"       # color2 +15
 # white
 color7="#cbbfbf"        # foreground +10
 color15="#ffffff"       # color7 +...

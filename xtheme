@@ -8,10 +8,11 @@ LC_ALL=C
 # Defaults --------------------------------------------------------------------
 XTHEME_CACHE="${XTHEME_CACHE:-$HOME/.xtheme}"
 
-XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-#FFA501}
-XTHEME_IMPORT_SCALE=${XTHEME_IMPORT_SCALE:-+18}
-XTHEME_BASE_COLOR_SCALE=${XTHEME_BASE_COLOR_SCALE:--15}
-XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-+20}
+XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-'#FFA501'}
+XTHEME_IMPORT_SCALE=${XTHEME_IMPORT_SCALE:-'+18'}
+XTHEME_BASE_COLOR_SCALE=${XTHEME_BASE_COLOR_SCALE:-'-15'}
+XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-'+15'}
+XTHEME_BLACK_COLOR_SCALE=${XTHEME_COLOR_SCALE:-'+20'}
 
 XTHEME_PREFER_DARK_THEME=1
 
@@ -237,11 +238,14 @@ apply_colors() {
     color6=${color6:-#008080}
     color7=${color7:-#c0c0c0}
 
-    for i in {8..15}; do
-        local color_l="color${i}"
-        local color_d="color$(($i - 8))"
-        declare -g color"${i}"=${!color_l:-$(rgb_value ${!color_d} $XTHEME_COLOR_SCALE)}
-    done
+    color8=${color8:-$(rgb_value $color0 $XTHEME_BLACK_COLOR_SCALE)}
+    color9=${color9:-$(rgb_value $color1 $XTHEME_COLOR_SCALE)}
+    color10=${color10:-$(rgb_value $color2 $XTHEME_COLOR_SCALE)}
+    color11=${color11:-$(rgb_value $color3 $XTHEME_COLOR_SCALE)}
+    color12=${color12:-$(rgb_value $color4 $XTHEME_COLOR_SCALE)}
+    color13=${color13:-$(rgb_value $color5 $XTHEME_COLOR_SCALE)}
+    color14=${color14:-$(rgb_value $color6 $XTHEME_COLOR_SCALE)}
+    color15=${color15:-$(rgb_value $color7 $XTHEME_COLOR_SCALE)}
 
     if [[ ! $background ]]; then
         background=$(rgb_value $color0 $XTHEME_BASE_COLOR_SCALE)
