@@ -157,20 +157,20 @@ clear_colors() {
     cursor=
 
     for i in {0..15}; do
-        eval "color${i}="
+        declare -g color"${i}"=
     done
 }
 
 # Import colors from xrdb config
 import_xrdb_colors() {
-    local i
+    local i color
 
     background=$(xrdbq background)
     foreground=$(xrdbq foreground)
     cursor=$(xrdbq cursor)
 
     for i in {0..15}; do
-        eval "color${i}=$(xrdbq color${i})"
+        declare -g color"${i}"=$(xrdbq color"${i}")
     done
 }
 
@@ -229,8 +229,9 @@ apply_colors() {
     color7=${color7:-#707880}
 
     for i in {8..15}; do
-        local exp="\${color${i}:-\$(rgb_value \$color$(($i - 8)) $XTHEME_COLOR_SCALE)}"
-        eval "color${i}=$exp"
+        local color_l="color${i}"
+        local color_d="color$(($i - 8))"
+        declare -g color"${i}"=${!color_l:-$(rgb_value ${!color_d} $XTHEME_COLOR_SCALE)}
     done
 
     if [[ ! $background ]]; then
@@ -272,9 +273,9 @@ preview_xtheme() {
     printf "─%.0s" $(seq 70); echo
 
     for i in {0..15}; do
-        eval "color=$(echo $(echo "\$color${i}"))"
-        printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $color)
-        echo -n "$color"
+        color="color${i}"
+        printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb ${!color})
+        echo -n "${!color}"
 
         [[ $i == 7 || $i == 15 ]] \
             && echo -e "\033[0m" || echo -n "  "
@@ -395,6 +396,7 @@ while [ -n "${1}" ]; do
 done
 
 # Import ----------------------------------------------------------------------
+source ~/.xtheme/colors.sh
 clear_colors
 
 if [[ "${XTHEME_NAME}" ]]; then
