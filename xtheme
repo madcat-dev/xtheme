@@ -3,19 +3,19 @@
 LC_ALL=C
 # using as library?
 [[ "${0}" != "${BASH_SOURCE}" ]] && \
-    RGB_IS_LIB=true || RGB_IS_LIB=
+    XTHEME_IS_LIB=True || XTHEME_IS_LIB=
 
 # -----------------------------------------------------------------------------
 # Defaults
 # -----------------------------------------------------------------------------
 XTHEME_CACHE="${XTHEME_CACHE:-$HOME/.xtheme}"
 
-CURSOR_COLOR=${CURSOR_COLOR:-#FFA500}
-THEME_BASE_SCALE=${THEME_BASE_SCALE:--15}
-THEME_COLOR_SCALE=${THEME_COLOR_SCALE:-+15}
-THEME_IMPORT_SCALE=${THEME_IMPORT_SCALE:-+18}
+XTHEME_CURSOR_COLOR=${XTHEME_CURSOR_COLOR:-#FFA500}
+XTHEME_BASE_SCALE=${XTHEME_BASE_SCALE:--15}
+XTHEME_COLOR_SCALE=${XTHEME_COLOR_SCALE:-+15}
+XTHEME_IMPORT_SCALE=${XTHEME_IMPORT_SCALE:-+18}
 
-PREFER_DARK_THEME=1
+XTHEME_PREFER_DARK_THEME=1
 
 # -----------------------------------------------------------------------------
 xrdbq() {
@@ -149,6 +149,7 @@ rgb_value() {
 # Clear all color-variables
 clear_colors() {
     local i
+
     background=
     foreground=
     cursor=
@@ -161,6 +162,7 @@ clear_colors() {
 # Import colors from xrdb config
 import_xrdb_colors() {
     local i
+
     background=$(xrdbq background)
     foreground=$(xrdbq foreground)
     cursor=$(xrdbq cursor)
@@ -201,7 +203,7 @@ import_image_colors() {
         $(convert "$image" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null || fatal)
     )
 
-    color0=$(rgb_value ${colors[0]} $THEME_IMPORT_SCALE)
+    color0=$(rgb_value ${colors[0]} $XTHEME_IMPORT_SCALE)
     color1=${colors[9]};
     color2=${colors[10]}
     color3=${colors[11]}
@@ -212,44 +214,35 @@ import_image_colors() {
 }
 
 
-refill_colors() {
+apply_colors() {
     local i color
 
-    # black
     color0=${color0:-#282a2e}
-    # red
     color1=${color1:-#a54242}
-    # green
     color2=${color2:-#8c9440}
-    # yellow
     color3=${color3:-#de935f}
-    # blue
     color4=${color4:-#5f819d}
-    # magenta
     color5=${color5:-#85678f}
-    # cyan
     color6=${color6:-#5e8d87}
-    # white
     color7=${color7:-#707880}
 
     for i in {8..15}; do
-        local exp="\${color${i}:-\$(rgb_value \$color$(($i - 8)) $THEME_COLOR_SCALE)}"
+        local exp="\${color${i}:-\$(rgb_value \$color$(($i - 8)) $XTHEME_COLOR_SCALE)}"
         eval "color${i}=$exp"
     done
 
-    if [[ ! "${PREFER_DARK_THEME}" ]]; then
-        background=
-        foreground=
-        color=$color0; color0=$color7; color7=$color
-        color=$color8; color8=$color15; color15=$color
-    fi
-
     if [[ ! $background ]]; then
-        background=$(rgb_value $color0 $THEME_BASE_SCALE)
+        background=$(rgb_value $color0 $XTHEME_BASE_SCALE)
     fi
 
-    foreground=${foreground:-$(rgb_value $color7 $THEME_BASE_SCALE)}
-    cursor=${cursor:-$CURSOR_COLOR}
+    foreground=${foreground:-$(rgb_value $color7 $XTHEME_BASE_SCALE)}
+    cursor=${cursor:-$XTHEME_CURSOR_COLOR}
+
+    if [[ ! "${XTHEME_PREFER_DARK_THEME}" ]]; then
+        color=$foreground; foreground=$background; background=$color
+        color=$color0;     color0=$color7;         color7=$color
+        color=$color8;     color8=$color15;        color15=$color
+    fi
 }
 
 # -----------------------------------------------------------------------------
@@ -279,7 +272,6 @@ preview_xtheme() {
     for i in {0..15}; do
         eval "color=$(echo $(echo "\$color${i}"))"
         printf "\033[38;2;%03d;%03d;%03dm" $(hex_to_rgb $color)
-        #printf "\033[48;2;%03d;%03d;%03dm" $(hex_to_rgb $background)
         echo -n "$color"
 
         [[ $i == 7 || $i == 15 ]] \
@@ -365,17 +357,17 @@ template() {
 # -----------------------------------------------------------------------------
 mkdir -p "$XTHEME_CACHE"
 
-[[ ${RGB_IS_LIB} ]] && return # run as a library
+[[ "${XTHEME_IS_LIB}" ]] && return # run as a library
 
 while [ -n "${1}" ]; do
     case "${1}" in
         --help|-h)
             ;;
         --light|-l)
-            PREFER_DARK_THEME=
+            XTHEME_PREFER_DARK_THEME=
             ;;
         --dark|-l)
-            PREFER_DARK_THEME=1
+            XTHEME_PREFER_DARK_THEME=1
             ;;
         --image|-s)
             XTHEME_IMAGE="${2}"
@@ -403,6 +395,7 @@ while [ -n "${1}" ]; do
     shift
 done
 
+# Import ----------------------------------------------------------------------
 clear_colors
 
 if [[ "${XTHEME_NAME}" ]]; then
@@ -417,18 +410,22 @@ if [[ "${XTHEME_MERGE}" ]]; then
     merge_theme_colors "$XTHEME_MERGE"
 fi
 
-refill_colors
-
+apply_colors
 preview_xtheme
 
+# Save ------------------------------------------------------------------------
 if [[ "${XTHEME_SAVE}" ]]; then
     template colors.sh "$XTHEME_SAVE" > /dev/null \
         && echo -e "\033[32m[*] theme is saved: $XTHEME_SAVE\033[0m"
 fi
 
+# Apply changes ---------------------------------------------------------------
 if [[ "${XTHEME_INSTALL}" ]]; then
     # Templates...
     template colors.sh
+    template colors.css
+    template colors.json
+    template colors-rofi.rasi
 
     # Modules...
     template xrdb
