@@ -24,6 +24,18 @@ WELCOME='
   ^#&~+&$=      -@#.     "@/    !@=  *@:        -@$`.*+ ^@;  "@/        
  +@&.  .$@+     -@#.     :@/    !@=  *@!++++++. -@$.    *@;  "@;++++++` 
  ,=-    ~=,     `=+      -=,    ~=.  ,========. `=+     ,=~  -========` 
+                                        Lazy generator of colorschemes
+Usage: xtheme [OPTIONS]...
+   or: xtheme [OPTIONS]... THEME
+Show preview of THEME, or show "Xresources" imported colorscheme
+
+Mandatory arguments to long options are mandatory for short options too
+    -i, --image IMAGE           import colorscheme from IMAGE
+    -m, --merge THEME           merge colorscheme with THEME
+    -s, --save  DESTINATION     save colorscheme to DESTINATION
+    --light                     generate a light colorscheme
+    --install                   install colorscheme
+    --help                      display this help and exit
 '
 # -----------------------------------------------------------------------------
 xrdbq() {
@@ -313,13 +325,13 @@ find_resource() {
         "/usr/share/xtheme/${resource}s"
     )
 
+    [[ -e "$name" ]] \
+        && echo "$(realpath "$name")" && return
+
     for path in ${paths[*]}; do
         [[ -e "$path/$name" ]] \
             && echo "$(realpath "$path/$name")" && return
     done
-
-    [[ -e "$name" ]] \
-        && echo "$(realpath "$name")" && return
 
     error "Resource $resource '${2}' not found"
 }
@@ -381,31 +393,28 @@ template() {
 
 while [ -n "${1}" ]; do
     case "${1}" in
-        --help|-h)
-            echo -e "$WELCOME"
-            exit 0
-            ;;
-        --light|-l)
-            XTHEME_PREFER_DARK_THEME=
-            ;;
-        --dark|-d)
-            XTHEME_PREFER_DARK_THEME=1
-            ;;
-        --image|-i)
+        -i|--image)
             XTHEME_IMAGE="${2}"
             XTHEME_NAME=
             shift
             ;;
-        --merge|-m)
+        -m|--merge)
             XTHEME_MERGE="${2}"
             shift
             ;;
-        --save|-s)
+        -s|--save)
             XTHEME_SAVE="${2}"
             shift
             ;;
+        --light)
+            XTHEME_PREFER_DARK_THEME=
+            ;;
         --install)
             XTHEME_INSTALL=Yes
+            ;;
+        --help|-h)
+            echo -e "$WELCOME"
+            exit 0
             ;;
         *)
             [[ "${1:0:1}" == '-' ]] \
