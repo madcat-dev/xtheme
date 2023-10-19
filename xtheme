@@ -412,7 +412,7 @@ while [ -n "${1}" ]; do
         --install)
             XTHEME_INSTALL=Yes
             ;;
-        --help|-h)
+        --help)
             echo -e "$WELCOME"
             exit 0
             ;;
