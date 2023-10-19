@@ -39,7 +39,7 @@ Mandatory arguments to long options are mandatory for short options too
 '
 # -----------------------------------------------------------------------------
 xrdbq() {
-    xrdb -query | grep -w "${1}:" | tail -n1 | cut -f 2
+    xrdb -query | grep -w "${1}:" | head -n1 | cut -f 2
 }
 
 min() {
@@ -422,7 +422,6 @@ while [ -n "${1}" ]; do
 done
 
 # Import ----------------------------------------------------------------------
-source ~/.xtheme/colors.sh
 clear_colors
 
 if [[ "${XTHEME_NAME}" ]]; then
