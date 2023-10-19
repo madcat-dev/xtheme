@@ -207,7 +207,7 @@ import_theme_colors() {
 }
 
 merge_theme_colors() {
-    import_theme_colors "${1}" merge
+    import_theme_colors "${1}" mod
 }
 
 import_image_colors() {
@@ -308,7 +308,6 @@ find_resource() {
     local name="${2/\~/$HOME}"
     local path= paths=(
         "$(dirname "${BASH_SOURCE:-$0}")/${resource}s"
-        "${XTHEME_CACHE}/${resource}s"
         "$HOME/.local/share/xtheme/${resource}s"
         "/usr/local/share/xtheme/${resource}s"
         "/usr/share/xtheme/${resource}s"
