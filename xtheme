@@ -26,8 +26,8 @@ WELCOME='
  ,=-    ~=,     `=+      -=,    ~=.  ,========. `=+     ,=~  -========` 
                                         Lazy generator of colorschemes
 Usage: xtheme [OPTIONS]...
-   or: xtheme [OPTIONS]... THEME
-Show preview of THEME, or show "Xresources" imported colorscheme
+   or: xtheme [OPTIONS]... COLORSCHEME
+Show preview of COLORSCHEME, or show "Xresources" imported colorscheme
 
 Mandatory arguments to long options are mandatory for short options too
     -i, --image IMAGE           import colorscheme from IMAGE
@@ -192,8 +192,8 @@ clear_colors() {
     done
 }
 
-# Import colors from xrdb config
-import_xrdb_colors() {
+# Import colors from Xresources
+import_Xresources_colors() {
     local i color
 
     background=$(xrdbq background)
@@ -205,21 +205,17 @@ import_xrdb_colors() {
     done
 }
 
-import_theme_colors() {
-    local scheme="$(find_resource ${2:-theme} "${1/\~/$HOME}" 2>/dev/null)"
+import_colorscheme_colors() {
+    local scheme="$(find_resource colorscheme "${1/\~/$HOME}" 2>/dev/null)"
 
     [[ ! "${scheme}" ]] \
-        && scheme="$(find_resource ${2:-theme} "${1/\~/$HOME}.sh" 2>/dev/null)"
+        && scheme="$(find_resource colorscheme "${1/\~/$HOME}.sh" 2>/dev/null)"
 
     [[ ! "${scheme}" ]] \
-        && fatal "theme '${1}' not existing!"
+        && fatal "colorscheme '${1}' not existing!"
 
     source "$scheme" \
-        || fatal "theme '${1}' not imported!"
-}
-
-merge_theme_colors() {
-    import_theme_colors "${1}" mod
+        || fatal "colorscheme '${1}' not imported!"
 }
 
 import_image_colors() {
@@ -246,8 +242,7 @@ import_image_colors() {
     color7=${colors[15]}
 }
 
-
-apply_colors() {
+refill_colors() {
     local i color
 
     color0=${color0:-#000000}
@@ -283,7 +278,7 @@ apply_colors() {
 }
 
 # XTheme functions ------------------------------------------------------------
-preview_xtheme() {
+preview() {
     local i color
 
     echo -n "background: "
@@ -418,7 +413,7 @@ while [ -n "${1}" ]; do
             ;;
         *)
             [[ "${1:0:1}" == '-' ]] \
-                && fatal "invalid argument: $1"
+                && fatal "invalid option -- '$1'"
             XTHEME_NAME="${1}"
             XTHEME_IMAGE=
             ;;
@@ -431,24 +426,24 @@ source ~/.xtheme/colors.sh
 clear_colors
 
 if [[ "${XTHEME_NAME}" ]]; then
-    import_theme_colors "$XTHEME_NAME"
+    import_colorscheme_colors "$XTHEME_NAME"
 elif [[ "${XTHEME_IMAGE}" ]]; then
     import_image_colors "$XTHEME_IMAGE"
 else
-    import_xrdb_colors
+    import_Xresources_colors
 fi
 
 if [[ "${XTHEME_MERGE}" ]]; then
-    merge_theme_colors "$XTHEME_MERGE"
+    import_colorscheme_colors "$XTHEME_MERGE"
 fi
 
-apply_colors
-preview_xtheme
+refill_colors
+preview
 
 # Save ------------------------------------------------------------------------
 if [[ "${XTHEME_SAVE}" ]]; then
     template colors.sh "$XTHEME_SAVE" > /dev/null \
-        && echo -e "\033[32m[*] theme is saved: $XTHEME_SAVE\033[0m"
+        && echo -e "\033[32m[*] colorscheme is saved: $XTHEME_SAVE\033[0m"
 fi
 
 # Apply changes ---------------------------------------------------------------
@@ -471,5 +466,5 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     template gtk-theme/FlatColor
     template kvantum
     template telegram
-    template xrdb
+    template Xresources
 fi
