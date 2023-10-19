@@ -459,11 +459,14 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     template colors.css
     template colors.json
     template colors.sh
+    template colors.Xresources
 
     # Modules...
     template gtk-icon-theme/Tela
     template gtk-theme/FlatColor
     template kvantum
     template telegram
-    template Xresources
+
+    # Post-install
+    xrdb -merge "$XTHEME_CACHE/colors.Xresources"
 fi
