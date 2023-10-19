@@ -10,7 +10,7 @@ XTHEME_CACHE="$HOME/.xtheme"
 
 XTHEME_PREFER_DARK_THEME=1
 XTHEME_CURSOR_COLOR="#FFA501"
-XTHEME_IMPORT_SCALE="+18"
+XTHEME_BLACK_COLOR_IMPORT_SCALE="+18"
 XTHEME_BASE_COLOR_SCALE="-15"
 XTHEME_COLOR_SCALE="100"
 XTHEME_BLACK_COLOR_SCALE="+25"
@@ -224,7 +224,7 @@ import_image_colors() {
         $(convert "$image" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null || fatal)
     )
 
-    color0=$(rgb_value ${colors[0]} $XTHEME_IMPORT_SCALE)
+    color0=$(rgb_value ${colors[0]} $XTHEME_BLACK_COLOR_IMPORT_SCALE)
     color1=${colors[9]};
     color2=${colors[10]}
     color3=${colors[11]}
