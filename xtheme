@@ -212,6 +212,9 @@ import_colorscheme_colors() {
         && scheme="$(find_resource colorscheme "${1/\~/$HOME}.sh" 2>/dev/null)"
 
     [[ ! "${scheme}" ]] \
+        && scheme="$(find_resource colorscheme "${1/\~/$HOME}.patch" 2>/dev/null)"
+
+    [[ ! "${scheme}" ]] \
         && fatal "colorscheme '${1}' not existing!"
 
     source "$scheme" \
