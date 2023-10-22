@@ -51,4 +51,4 @@ sed  -i "s/#b29aff/$(rgb_value "$COLORS_VARIANT" +20)/gi" \
 	"$DESTINATION"/scalable/places/default-*.svg || return 1
 
 sed  -i "s/#5294E2/$COLORS_VARIANT/gi" \
-	"$DESTINATION"/16/places/folder*.svg || return 1
+    "$DESTINATION"/16/places/folder*.svg || return 1
