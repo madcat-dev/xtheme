@@ -27,9 +27,9 @@ Show preview of COLORSCHEME, or show "Xresources" imported colorscheme
 Mandatory arguments to long options are mandatory for short options too
     -i, --image      IMAGE          import colorscheme from IMAGE
     -m, --merge      THEME          merge colorscheme with THEME
-    -H, --hue        VALUE          change hue property
-    -S, --saturation VALUE          change satuation property
-    -V, --value      VALUE          change value property
+    -H, --hue        VALUE          change hue
+    -S, --saturation VALUE          change satuation
+    -V, --value      VALUE          change value
                                     VALUE: [+-]{integer value}[%]
     -s, --save       DESTINATION    save colorscheme to DESTINATION
     --light                         generate a light colorscheme
