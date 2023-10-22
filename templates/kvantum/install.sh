@@ -13,15 +13,15 @@ sed  -i "s/#1b2224/${background}/gi" \
 	"$DESTINATION/XTheme.svg" || return 1
 
 # base color / black
-sed  -i "s/#222b2e/$(rgb_value ${background} +4)/gi" \
+sed  -i "s/#222b2e/$(rgb value ${background} +4)/gi" \
 	"$DESTINATION/XTheme.svg" || return 1
 
 # button color 
-sed  -i "s/#263034/$(rgb_value ${background} +6)/gi" \
+sed  -i "s/#263034/$(rgb value ${background} +6)/gi" \
 	"$DESTINATION/XTheme.svg" || return 1
 
 # button color 2
-sed  -i "s/#39494f/$(rgb_value ${background} +17)/gi" \
+sed  -i "s/#39494f/$(rgb value ${background} +17)/gi" \
 	"$DESTINATION/XTheme.svg" || return 1
 
 # selected color / green
@@ -30,10 +30,10 @@ sed  -i "s/#2eb398/${color2}/gi" \
 
 # selected color / green
 if [[ ! "${XTHEME_PREFER_DARK_THEME}" ]]; then
-    sed  -i "s/#dfdfdf/$(rgb_value '#dfdfdf' -50)/gi" \
+    sed  -i "s/#dfdfdf/$(rgb value '#dfdfdf' -50)/gi" \
         "$DESTINATION/XTheme.svg" || return 1
 
-    sed  -i "s/#f5f5f5/$(rgb_value '#f5f5f5' -20)/gi" \
+    sed  -i "s/#f5f5f5/$(rgb value '#f5f5f5' -20)/gi" \
         "$DESTINATION/XTheme.svg" || return 1
 fi
 
