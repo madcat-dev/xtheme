@@ -7,7 +7,7 @@ LC_ALL=C
 
 # Defaults --------------------------------------------------------------------
 XTHEME_CACHE="$HOME/.xtheme"
-XTHEME_PREFER_DARK_THEME=1
+XTHEME_BACKGROUND_VARIANT="dark"
 XTHEME_CURSOR_COLOR="#FFA501"
 
 WELCOME='
@@ -25,12 +25,16 @@ Usage: xtheme [OPTIONS]...
 Show preview of COLORSCHEME, or show "Xresources" imported colorscheme
 
 Mandatory arguments to long options are mandatory for short options too
-    -i, --image IMAGE           import colorscheme from IMAGE
-    -m, --merge THEME           merge colorscheme with THEME
-    -s, --save  DESTINATION     save colorscheme to DESTINATION
-    --light                     generate a light colorscheme
-    --install                   install colorscheme
-    --help                      display this help and exit
+    -i, --image      IMAGE          import colorscheme from IMAGE
+    -m, --merge      THEME          merge colorscheme with THEME
+    -H, --hue        VALUE          change hue property
+    -S, --saturation VALUE          change satuation property
+    -V, --value      VALUE          change value property
+                                    VALUE: [+-]{integer value}[%]
+    -s, --save       DESTINATION    save colorscheme to DESTINATION
+    --light                         generate a light colorscheme
+    --install                       install colorscheme
+    --help                          display this help and exit
 '
 # -----------------------------------------------------------------------------
 xrdbq() {
@@ -120,6 +124,8 @@ hsv_to_rgb() {
     local s=$(lim ${2:-0} 0 100)
     local v=$(lim ${3:-0} 0 100)
 
+    [[ $h -lt 0 ]] && h=$(( $h + 360 ))
+
     v=$(( $v * 255 / 100 ))
     h=$(( $h * 100 / 360 ))
 
@@ -171,6 +177,44 @@ rgb_value() {
         && eval "v=$(( $v $rel $val ))" || v=$val
 
     hsv_to_rgb ${HSV[0]} ${HSV[1]} $v
+}
+
+rgb() {
+    local HSV value
+    IFS=" " read -a HSV <<< "$(rgb_to_hsv ${2})"
+    local h=${HSV[0]}
+    local s=${HSV[1]}
+    local v=${HSV[2]}
+
+    if [[ $1 == "hue" ]]; then
+        value="$h"
+    elif [[ $1 == "saturation" ]]; then
+        value="$s"
+    elif [[ $1 == "value" ]]; then
+        value="$v"
+    else
+        fatal "invalid '$1' property"
+    fi
+
+    [[ ! "${3}" ]] && echo $value && return 0
+
+    [[ $1 == "hue" && $value -eq 0 ]] && value=360
+
+    [[ "${3}" =~ ^([+-]?)([0-9]+)(%?)$ ]] || fatal "invalid value"
+    local rel=${BASH_REMATCH[1]}
+    local val=${BASH_REMATCH[2]}
+    local pcn=${BASH_REMATCH[3]}
+
+    # percent value
+    [[ "$pcn" ]] \
+        && val=$(( $value * $val / 100 ))
+    # absolute value
+    [[ "$rel" ]] \
+        && eval "value=$(( $value $rel $val ))" || value=$val
+
+    [[ $1 == "hue" ]] && hsv_to_rgb $value $s $v
+    [[ $1 == "saturation" ]] && hsv_to_rgb $h $value $v
+    [[ $1 == "value" ]] && hsv_to_rgb $h $s $value
 }
 
 # Color-management functions --------------------------------------------------
@@ -243,6 +287,15 @@ import_image_colors() {
     color7=$(rgb_value ${colors[15]} 88)
 }
 
+modify_colors() {
+    for i in {1..6}; do
+        local colorD="color$(( i ))"
+        local colorL="color$((i+8))"
+        declare -g color$(( i ))=$(rgb ${1} ${!colorD} ${2})
+        declare -g color$((i+8))=$(rgb ${1} ${!colorL} ${2})
+    done
+}
+
 make_colors() {
     local i color
     local colors=(
@@ -288,20 +341,21 @@ make_colors() {
         declare -g color$((i+8))=${!colorL:-$(rgb_value ${!colorD} 100)}
     done
 
-    if [[ ! "${XTHEME_PREFER_DARK_THEME}" ]]; then
+    if [[ ${XTHEME_BACKGROUND_VARIANT} == "light" ]]; then
         # make all base colors darker
-        for i in {1..6}; do
-            local colorD="color$(( i ))"
-            local colorL="color$((i+8))"
-            declare -g color$(( i ))=$(rgb_value ${!colorD} -50%)
-            declare -g color$((i+8))=$(rgb_value ${!colorL} -50%)
-        done
-
+        modify_colors value -50%
         # swap black and white colors
         color=$foreground; foreground=$background; background=$color
         color=$color0;     color0=$color7;         color7=$color
         color=$color8;     color8=$color15;        color15=$color
     fi
+
+    [[ ${XTHEME_HUE} ]] \
+        && modify_colors hue $XTHEME_HUE
+    [[ ${XTHEME_SATURATION} ]] \
+        && modify_colors saturation $XTHEME_SATURATION
+    [[ ${XTHEME_VALUE} ]] \
+        && modify_colors value $XTHEME_VALUE
 }
 
 # XTheme functions ------------------------------------------------------------
@@ -426,12 +480,24 @@ while [ -n "${1}" ]; do
             XTHEME_MERGE="${2}"
             shift
             ;;
+        -H|--hue)
+            XTHEME_HUE="${2}"
+            shift
+            ;;
+        -S|--saturation)
+            XTHEME_SATURATION="${2}"
+            shift
+            ;;
+        -V|--value)
+            XTHEME_VALUE="${2}"
+            shift
+            ;;
         -s|--save)
             XTHEME_SAVE="${2}"
             shift
             ;;
         --light)
-            XTHEME_PREFER_DARK_THEME=
+            XTHEME_BACKGROUND_VARIANT="light"
             ;;
         --install)
             XTHEME_INSTALL=Yes
