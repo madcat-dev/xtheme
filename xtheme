@@ -7,13 +7,8 @@ LC_ALL=C
 
 # Defaults --------------------------------------------------------------------
 XTHEME_CACHE="$HOME/.xtheme"
-
 XTHEME_PREFER_DARK_THEME=1
 XTHEME_CURSOR_COLOR="#FFA501"
-XTHEME_BLACK_COLOR_IMPORT_SCALE="+18"
-XTHEME_BASE_COLOR_SCALE="-15"
-XTHEME_COLOR_SCALE="100"
-XTHEME_BLACK_COLOR_SCALE="+25"
 
 WELCOME='
  `.`    `.`  `........`  `.`    `.   `........   ``     `.`  `........  
@@ -235,45 +230,74 @@ import_image_colors() {
         $(convert "$image" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null || fatal)
     )
 
-    color0=$(rgb_value ${colors[0]} $XTHEME_BLACK_COLOR_IMPORT_SCALE)
-    color1=${colors[9]};
+    background=$(rgb_value ${colors[0]}  12)
+    foreground=$(rgb_value ${colors[15]} 78)
+
+    color0=$(rgb_value ${colors[0]} 17)
+    color1=${colors[9]}
     color2=${colors[10]}
     color3=${colors[11]}
     color4=${colors[12]}
     color5=${colors[13]}
     color6=${colors[14]}
-    color7=${colors[15]}
+    color7=$(rgb_value ${colors[15]} 88)
 }
 
-refill_colors() {
+make_colors() {
     local i color
-
-    color0=${color0:-#000000}
-    color1=${color1:-#800000}
-    color2=${color2:-#008000}
-    color3=${color3:-#808000}
-    color4=${color4:-#000080}
-    color5=${color5:-#800080}
-    color6=${color6:-#008080}
-    color7=${color7:-#c0c0c0}
-
-    color8=${color8:-$(rgb_value $color0 $XTHEME_BLACK_COLOR_SCALE)}
-    color9=${color9:-$(rgb_value $color1 $XTHEME_COLOR_SCALE)}
-    color10=${color10:-$(rgb_value $color2 $XTHEME_COLOR_SCALE)}
-    color11=${color11:-$(rgb_value $color3 $XTHEME_COLOR_SCALE)}
-    color12=${color12:-$(rgb_value $color4 $XTHEME_COLOR_SCALE)}
-    color13=${color13:-$(rgb_value $color5 $XTHEME_COLOR_SCALE)}
-    color14=${color14:-$(rgb_value $color6 $XTHEME_COLOR_SCALE)}
-    color15=${color15:-$(rgb_value $color7 $XTHEME_COLOR_SCALE)}
-
-    if [[ ! $background ]]; then
-        background=$(rgb_value $color0 $XTHEME_BASE_COLOR_SCALE)
-    fi
-
-    foreground=${foreground:-$(rgb_value $color7 $XTHEME_BASE_COLOR_SCALE)}
+    local colors=(
+        '#000000' '#800000' '#008000' '#808000'
+        '#000080' '#800080' '#008080' '#c0c0c0'
+    )
     cursor=${cursor:-$XTHEME_CURSOR_COLOR}
 
+    if [[ ! ${color0} ]]; then
+        color0=${colors[0]}
+        color8=
+        [[ ${background} ]] && color0=$(rgb_value $background +5)
+    fi
+
+    for i in {1..6}; do
+        color="color${i}"
+        [[ ! ${!color} ]] \
+            && declare -g color$(( i ))=${colors[$i]} \
+            && declare -g color$((i+8))=
+    done
+
+    if [[ ! ${color7} ]]; then
+        color7=${colors[7]}
+        color15=
+        [[ ${foreground} ]] && color7=$(rgb_value $foreground +10)
+    fi
+
+    if [[ ! ${background} ]]; then
+        background=$(rgb_value $color0 12)
+        color0=$(rgb_value $background +5)
+        color8=
+    fi
+    if [[ ! ${foreground} ]]; then
+        foreground=$(rgb_value $color7  78)
+        color7=$(rgb_value $foreground +10)
+        color15=
+    fi
+
+    color8=${color8:-$(rgb_value $color0 +25)}
+    for i in {1..7}; do
+        local colorD="color$(( i ))"
+        local colorL="color$((i+8))"
+        declare -g color$((i+8))=${!colorL:-$(rgb_value ${!colorD} 100)}
+    done
+
     if [[ ! "${XTHEME_PREFER_DARK_THEME}" ]]; then
+        # make all base colors darker
+        for i in {1..6}; do
+            local colorD="color$(( i ))"
+            local colorL="color$((i+8))"
+            declare -g color$(( i ))=$(rgb_value ${!colorD} -50%)
+            declare -g color$((i+8))=$(rgb_value ${!colorL} -50%)
+        done
+
+        # swap black and white colors
         color=$foreground; foreground=$background; background=$color
         color=$color0;     color0=$color7;         color7=$color
         color=$color8;     color8=$color15;        color15=$color
@@ -348,11 +372,13 @@ apply() {
     while read -r data; do
         local IFS=$'\x1B'
 
+        [[ ${data} =~ '*DEL!!' ]] && continue
+
         data="${data//\\/\\x5C}"
         data="${data//\"/\\x22}"
         data=$'\x22'$data$'\x22'
 
-        eval echo -e ${data} >> $dest 2>/dev/null \
+        eval echo -e ${data} >> $dest \
             || return $(error "Template '${dest/$HOME/\~}' not save!")
     done < $srce
 }
@@ -439,7 +465,7 @@ if [[ "${XTHEME_MERGE}" ]]; then
     import_colorscheme_colors "$XTHEME_MERGE"
 fi
 
-refill_colors
+make_colors
 preview
 
 # Save ------------------------------------------------------------------------
@@ -452,23 +478,26 @@ fi
 if [[ "${XTHEME_INSTALL}" ]]; then
     mkdir -p "$XTHEME_CACHE"
 
-    # Templates...
-    template colors-gtk.css
-    template colors-gtk.rc
-    template colors-kitty.conf
-    template colors-rofi.rasi
-    template colors-xfce4-terminal.theme \
-        ~/.local/share/xfce4/terminal/colorschemes/xtheme.theme
-    template colors.css
-    template colors.json
-    template colors.sh
-    template colors.Xresources
-
     # Modules...
-    template gtk-icon-theme/Tela
-    template gtk-theme/FlatColor
-    template kvantum
-    template telegram
+    template   gtk-icon-theme/Tela
+    template   gtk-theme/FlatColor
+    template   kvantum
+    template   telegram
+
+    # Templates...
+    template   colors
+    template   colors-gtk.css
+    template   colors-gtk.rc
+    template   colors-kitty.conf
+    template   colors-rofi.rasi
+    template    colors-vscode.json
+    template    colors-xfce4-terminal.theme \
+        ~/.local/share/xfce4/terminal/colorschemes/xtheme.theme
+    template   colors.css
+    template   colors.json
+    template   colors.sh
+    template    colors.vim
+    template   colors.Xresources
 
     # Post-install
     xrdb -merge "$XTHEME_CACHE/colors.Xresources"
