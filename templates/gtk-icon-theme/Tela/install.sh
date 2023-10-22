@@ -14,7 +14,7 @@ if [[ ! -e "$DESTINATION" ]]; then
 	return 1
 fi
 
-if [[ "${XTHEME_PREFER_DARK_THEME:-1}" ]]; then
+if [[ "${XTHEME_PREFER_DARK_THEME}" ]]; then
     # 35 / 65
 	sed  -i "s/#565656/$(rgb_value "$COLORS_VARIANT" 65)/g" \
 		"$DESTINATION"/{16,22,24}/actions/*.svg || return 1

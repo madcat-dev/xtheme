@@ -7,7 +7,7 @@ LC_ALL=C
 
 # Defaults --------------------------------------------------------------------
 XTHEME_CACHE="$HOME/.xtheme"
-XTHEME_BACKGROUND_VARIANT="dark"
+XTHEME_PREFER_DARK_THEME=1
 XTHEME_CURSOR_COLOR="#FFA501"
 
 WELCOME='
@@ -341,7 +341,7 @@ make_colors() {
         declare -g color$((i+8))=${!colorL:-$(rgb_value ${!colorD} 100)}
     done
 
-    if [[ ${XTHEME_BACKGROUND_VARIANT} == "light" ]]; then
+    if [[ ! ${XTHEME_PREFER_DARK_THEME} ]]; then
         # make all base colors darker
         modify_colors value -50%
         # swap black and white colors
@@ -497,7 +497,7 @@ while [ -n "${1}" ]; do
             shift
             ;;
         --light)
-            XTHEME_BACKGROUND_VARIANT="light"
+            XTHEME_PREFER_DARK_THEME=
             ;;
         --install)
             XTHEME_INSTALL=Yes
@@ -556,13 +556,12 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     template   colors-gtk.rc
     template   colors-kitty.conf
     template   colors-rofi.rasi
-    template    colors-vscode.json
-    template    colors-xfce4-terminal.theme \
-        ~/.local/share/xfce4/terminal/colorschemes/xtheme.theme
+    template   colors-vscode.json
+    template   colors-xfce4-terminal.theme
     template   colors.css
     template   colors.json
     template   colors.sh
-    template    colors.vim
+    template   colors.vim
     template   colors.Xresources
 
     # Post-install
