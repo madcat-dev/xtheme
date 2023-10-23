@@ -532,7 +532,7 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     template   colors-gtk.rc
     template   colors-kitty.conf
     template   colors-rofi.rasi
-    #template   colors-vscode.json
+    template   colors-vscode.json
     template   colors-xfce4-terminal.theme
     template   colors.css
     template   colors.json
