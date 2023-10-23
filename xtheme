@@ -311,12 +311,10 @@ make_colors() {
         color15=
     fi
 
-    color8=${color8:-$(rgb value $color0 +25)}
-
-    for i in {1..7}; do
+    for i in {0..7}; do
         local colorD="color$(( i ))"
         local colorL="color$((i+8))"
-        declare -g color$((i+8))=${!colorL:-$(rgb value ${!colorD} +30)}
+        declare -g color$((i+8))=${!colorL:-$(rgb value ${!colorD} +25)}
     done
 
     if [[ ! ${XTHEME_PREFER_DARK_THEME} ]]; then
