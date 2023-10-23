@@ -7,6 +7,7 @@ LC_ALL=C
 
 # Defaults --------------------------------------------------------------------
 XTHEME_CACHE="$HOME/.xtheme"
+XTHEME_CONFIG="$HOME/.xtheme"
 XTHEME_PREFER_DARK_THEME=1
 XTHEME_CURSOR_COLOR="#FFA501"
 
@@ -311,10 +312,11 @@ make_colors() {
     fi
 
     color8=${color8:-$(rgb value $color0 +25)}
+
     for i in {1..7}; do
         local colorD="color$(( i ))"
         local colorL="color$((i+8))"
-        declare -g color$((i+8))=${!colorL:-$(rgb value ${!colorD} 100)}
+        declare -g color$((i+8))=${!colorL:-$(rgb value ${!colorD} +30)}
     done
 
     if [[ ! ${XTHEME_PREFER_DARK_THEME} ]]; then
@@ -372,9 +374,7 @@ find_resource() {
     local name="${2/\~/$HOME}"
     local path= paths=(
         "$(dirname "${BASH_SOURCE:-$0}")/${resource}s"
-        "$HOME/.local/share/xtheme/${resource}s"
-        "/usr/local/share/xtheme/${resource}s"
-        "/usr/share/xtheme/${resource}s"
+        "$XTHEME_CONFIG/${resource}s"
     )
 
     [[ -e "$name" ]] \
@@ -425,13 +425,13 @@ template() {
     if [[ -d "$path" ]]; then
         DESTINATION="$dest"
         source "$path/install.sh" \
-            && echo -e "\033[32m[+] template .../$name is installed\033[0m" \
+            && echo -e "\033[36m[+] template .../$name is installed\033[0m" \
             && return 0
     else
         [[ ! "${dest}" ]] && dest="$XTHEME_CACHE"
         [[ -d "$dest" || ${dest: -1} == '/' ]] && dest="$dest/$name"
         apply "$path" "$dest" \
-            && echo -e "\033[32m[+] template .../$name is installed\033[0m" \
+            && echo -e "\033[36m[+] template .../$name is installed\033[0m" \
             && return 0
     fi
 
@@ -541,5 +541,10 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     template   colors.Xresources
 
     # Post-install
-    xrdb -merge "$XTHEME_CACHE/colors.Xresources"
+    xrdb -merge "$XTHEME_CACHE/colors.Xresources" \
+        && echo -e "\033[36m[+] xrdb --merge... is completed!\033[0m" \
+        || echo -e "\033[31m[-] xrdb --merge... is not completed!\033[0m"
+
+
+    echo -e "\033[32m[!] installation is completed to ${XTHEME_CACHE/$HOME/\~}!\033[0m"
 fi
