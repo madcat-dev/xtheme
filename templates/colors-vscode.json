@@ -42,12 +42,12 @@
 		"list.hoverBackground": "${color2}30",
 		"list.dropBackground": "${color2}30",
 
-        "editorBracketHighlight.foreground1": "${foreground}",
-        "editorBracketHighlight.foreground2": "${foreground}",
-        "editorBracketHighlight.foreground3": "${foreground}",
-        "editorBracketHighlight.foreground4": "${foreground}",
-        "editorBracketHighlight.foreground5": "${foreground}",
-        "editorBracketHighlight.foreground6": "${foreground}",
+        "editorBracketHighlight.foreground1": "${color7}",
+        "editorBracketHighlight.foreground2": "${color7}",
+        "editorBracketHighlight.foreground3": "${color7}",
+        "editorBracketHighlight.foreground4": "${color7}",
+        "editorBracketHighlight.foreground5": "${color7}",
+        "editorBracketHighlight.foreground6": "${color7}",
 
 		"terminal.background": "${background}",
 		"terminal.foreground": "${foreground}",
