@@ -3,11 +3,11 @@
 #     Module from 'xtheme'
 source xtheme || exit 1 # import xtheme as library
 TEMPLATE=$(dirname "${BASH_SOURCE:-$0}")
-XTHEME_CACHE="$XTHEME_CACHE/icons"
+XTHEME_CACHE="$HOME/.icons"
 COLORS_VARIANT="${color2}"
 
-mkdir -p "$XTHEME_CACHE"
 rm   -rf "$XTHEME_CACHE/Tela"
+mkdir -p "$XTHEME_CACHE"
 tar -xzf "$TEMPLATE/Tela.tar.gz" -C "$XTHEME_CACHE/" || exit 1
 
 XTHEME_CACHE="$XTHEME_CACHE/Tela"

@@ -3,8 +3,9 @@
 #     Module from 'xtheme'
 source xtheme || exit 1 # import xtheme as library
 TEMPLATE=$(dirname "${BASH_SOURCE:-$0}")
-XTHEME_CACHE="$XTHEME_CACHE/config/Kvantum/XTheme"
+XTHEME_CACHE="$HOME/.config/Kvantum/XTheme"
 
+rm   -rf "$XTHEME_CACHE" 2>/dev/null
 mkdir -p "$XTHEME_CACHE" > /dev/null 2>&1
 
 cp "$TEMPLATE/XTheme.svg" "$XTHEME_CACHE" || exit 1

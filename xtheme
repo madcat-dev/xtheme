@@ -515,9 +515,9 @@ if [[ "${XTHEME_INSTALL}" ]]; then
     apply_templates
 
     # Post-install
-    #xrdb -merge "$XTHEME_CACHE/colors.Xresources" \
-        #&& ok "xrdb --merge... is completed!" \
-        #|| error "xrdb --merge... is not completed!"
+    xrdb -merge "$XTHEME_CACHE/colors.Xresources" \
+        && ok "xrdb --merge... is completed!" \
+        || error "xrdb --merge... is not completed!"
 
     echo "Installation is completed to ${XTHEME_CACHE/$HOME/\~}!"
 fi
