@@ -1,13 +1,13 @@
+#!/usr/bin/env bash
 # Telegram variables installer
 #     Module from 'xtheme'
-CACHE=${XTHEME_CACHE:-$HOME/.xtheme}
-TEMPLATE="$(dirname "$BASH_SOURCE")"
-DESTINATION="${DESTINATION:-$CACHE}"
+source xtheme || exit 1 # import xtheme as library
+TEMPLATE=$(dirname "${BASH_SOURCE:-$0}")
 
-mkdir -p "$DESTINATION" 2>/dev/null
+mkdir -p "$XTHEME_CACHE" 2>/dev/null
 
 apply "$TEMPLATE/colors.tdesktop-palette" \
-    "$DESTINATION/colors.tdesktop-palette" || return 1
+    "$XTHEME_CACHE/colors.tdesktop-palette" || return 1
 
 cat "$TEMPLATE/colors.tpg-constants" \
-    >> "$DESTINATION/colors.tdesktop-palette" || return 1
+    >> "$XTHEME_CACHE/colors.tdesktop-palette" || return 1

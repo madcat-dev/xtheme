@@ -5,11 +5,11 @@ LC_ALL=C
 [[ "${0}" != "${BASH_SOURCE}" ]] && \
     XTHEME_IS_LIB=True || XTHEME_IS_LIB=
 
-# Defaults --------------------------------------------------------------------
-XTHEME_CACHE="$HOME/.xtheme"
-XTHEME_CONFIG="$HOME/.xtheme"
-XTHEME_PREFER_DARK_THEME=1
-XTHEME_CURSOR_COLOR="#FFA501"
+# Defaults and exports --------------------------------------------------------
+export XTHEME_CACHE=${XTHEME_CACHE:-$HOME/.cache/xtheme}
+export XTHEME_CONFIG=${XTHEME_CONFIG:-$HOME/.config/xtheme}
+export XTHEME_PREFER_DARK_THEME=${XTHEME_PREFER_DARK_THEME:-1}
+export XTHEME_CURSOR_COLOR="#FFA501"
 
 WELCOME='
  `.`    `.`  `........`  `.`    `.   `........   ``     `.`  `........
@@ -58,14 +58,25 @@ lim() {
 }
 
 fatal() {
-    echo -e "\033[31;1mfatal: ${@}\033[0m" >&2
+    echo -e "\033[31;1m[!] ${@}\033[0m" >&2
     echo -e "    trace: ${FUNCNAME[*]}" >&2
     kill -9 $$ && sleep 9999
 }
 
 error() {
-    echo -e "\033[31merror: ${@}\033[0m" >&2
-    return 1
+    echo -e "\033[31m[-] ${@}\033[0m" >&2; return 1
+}
+
+warning() {
+    echo -e "\033[33m[?] ${@}\033[0m" >&2; return 1
+}
+
+info() {
+    echo -e "\033[35;1m[ ] ${@}\033[0m" >&2
+}
+
+ok() {
+    echo -e "\033[32m[+] ${@}\033[0m" >&2
 }
 
 # RGB functions ---------------------------------------------------------------
@@ -210,7 +221,7 @@ clear_colors() {
 
 # Import colors from Xresources
 import_Xresources_colors() {
-    local i color
+    local i
 
     background=$(xrdbq background)
     foreground=$(xrdbq foreground)
@@ -222,18 +233,10 @@ import_Xresources_colors() {
 }
 
 import_colorscheme_colors() {
-    local scheme="$(find_resource colorscheme "${1/\~/$HOME}" 2>/dev/null)"
-
-    [[ ! "${scheme}" ]] \
-        && scheme="$(find_resource colorscheme "${1/\~/$HOME}.sh" 2>/dev/null)"
-
-    [[ ! "${scheme}" ]] \
-        && scheme="$(find_resource colorscheme "${1/\~/$HOME}.patch" 2>/dev/null)"
-
-    [[ ! "${scheme}" ]] \
-        && fatal "colorscheme '${1}' not existing!"
+    local scheme=$(find "${1:--}"* "$XTHEME_CONFIG/colorschemes/${1:--}"* 2>/dev/null | head -n1)
 
     source "$scheme" \
+        && XTHEME_NAME=$(basename $scheme) \
         || fatal "colorscheme '${1}' not imported!"
 }
 
@@ -268,8 +271,8 @@ modify_colors() {
     for i in {1..6}; do
         local colorD="color$(( i ))"
         local colorL="color$((i+8))"
-        declare -g color$(( i ))=$(rgb ${1} ${!colorD} ${2})
-        declare -g color$((i+8))=$(rgb ${1} ${!colorL} ${2})
+        declare -g "$colorD"=$(rgb ${1} ${!colorD} ${2})
+        declare -g "$colorL"=$(rgb ${1} ${!colorL} ${2})
     done
 }
 
@@ -288,10 +291,11 @@ make_colors() {
     fi
 
     for i in {1..6}; do
-        color="color${i}"
-        [[ ! ${!color} ]] \
-            && declare -g color$(( i ))=${colors[$i]} \
-            && declare -g color$((i+8))=
+        local colorD="color$(( i ))"
+        local colorL="color$((i+8))"
+        [[ ! ${!colorD} ]] \
+            && declare -g "$colorD"=${colors[$i]} \
+            && declare -g "$colorL"=
     done
 
     if [[ ! ${color7} ]]; then
@@ -314,7 +318,7 @@ make_colors() {
     for i in {0..7}; do
         local colorD="color$(( i ))"
         local colorL="color$((i+8))"
-        declare -g color$((i+8))=${!colorL:-$(rgb value ${!colorD} +25)}
+        declare -g "$colorL"=${!colorL:-$(rgb value ${!colorD} +25)}
     done
 
     if [[ ! ${XTHEME_PREFER_DARK_THEME} ]]; then
@@ -367,31 +371,12 @@ preview() {
     done
 }
 
-find_resource() {
-    local resource="${1}"
-    local name="${2/\~/$HOME}"
-    local path= paths=(
-        "$(dirname "${BASH_SOURCE:-$0}")/${resource}s"
-        "$XTHEME_CONFIG/${resource}s"
-    )
-
-    [[ -e "$name" ]] \
-        && echo "$(realpath "$name")" && return
-
-    for path in ${paths[*]}; do
-        [[ -e "$path/$name" ]] \
-            && echo "$(realpath "$path/$name")" && return
-    done
-
-    error "Resource $resource '${2}' not found"
-}
-
 apply() {
     local data
     local srce="${1/\~/$HOME}"
     local dest="${2/\~/$HOME}"
 
-    [[ ! -f "$srce" ]] \
+    [[ ! -e "$srce" ]] \
         && return $(error "Template '${srce/$HOME/\~}' not existing!")
 
     rm    -f "$dest" > /dev/null 2>&1
@@ -411,40 +396,49 @@ apply() {
     done < $srce
 }
 
-template() {
-    local path="$(find_resource template "${1}")"
-    local name="$(basename "${1}")"
-    local dest="${2/\~/$HOME}"
+apply_templates() {
+    local path=$(realpath "${1:-$XTHEME_CONFIG/templates}")
 
-    [[ ! -e "${path}" ]] \
-        && echo -e "\033[31m[-] template .../$name is not installed!\033[0m" \
-        && return 1
+    for item in "$path"/*; do
+        local name=$(basename "$item")
 
-    if [[ -d "$path" ]]; then
-        DESTINATION="$dest"
-        source "$path/install.sh" \
-            && echo -e "\033[36m[+] template .../$name is installed\033[0m" \
-            && return 0
-    else
-        [[ ! "${dest}" ]] && dest="$XTHEME_CACHE"
-        [[ -d "$dest" || ${dest: -1} == '/' ]] && dest="$dest/$name"
-        apply "$path" "$dest" \
-            && echo -e "\033[36m[+] template .../$name is installed\033[0m" \
-            && return 0
-    fi
+        [[ ${name:0:1} == "-" ]] && continue
 
-    echo -e "\033[31m[-] template .../$name is not installed!\033[0m"
-    return 1
+        if [[ -d $item ]]; then
+            if [[ ! -e $item/install.sh ]]; then
+                apply_templates "$item"
+                continue
+            fi
+            "$item/install.sh" 2>/dev/null \
+                && ok "template .../$name is installed" \
+                || error "template .../$name is not installed!"
+        else
+            apply "$item" "$XTHEME_CACHE/$name" 2>/dev/null \
+                && ok "template .../$name is installed" \
+                || error "template .../$name is not installed!"
+        fi
+    done
 }
 
-
 # -----------------------------------------------------------------------------
-#   MAIN
+# MAIN
 # -----------------------------------------------------------------------------
-[[ "${XTHEME_IS_LIB}" ]] && return # run as a library
+[[ ${XTHEME_IS_LIB} ]] && return # run as a library
 
+export PATH=$(dirname "${BASH_SOURCE:-$0}"):$PATH
+
+mkdir -p "$XTHEME_CACHE"
+mkdir -p "$XTHEME_CONFIG"/{templates,colorscheme}
+
+export background foreground cursor
+for i in {0..15}; do export color"${i}"; done
+
+[[ -d $(pwd)/templates ]] && XTHEME_CONFIG="$(pwd)"
+XTHEME_CONFIG=$(realpath "$XTHEME_CONFIG")
+
+# Parse args ------------------------------------------------------------------
 while [ -n "${1}" ]; do
-    case "${1}" in
+    case ${1} in
         -i|--image)
             XTHEME_IMAGE="${2}"
             XTHEME_NAME=
@@ -494,7 +488,8 @@ done
 clear_colors
 
 if [[ "${XTHEME_NAME}" ]]; then
-    import_colorscheme_colors "$XTHEME_NAME"
+    import_colorscheme_colors "$XTHEME_NAME" \
+        && ok "colorscheme $XTHEME_NAME is imported"
 elif [[ "${XTHEME_IMAGE}" ]]; then
     import_image_colors "$XTHEME_IMAGE"
 else
@@ -511,38 +506,18 @@ preview
 # Save ------------------------------------------------------------------------
 if [[ "${XTHEME_SAVE}" ]]; then
     template colors.sh "$XTHEME_SAVE" > /dev/null \
-        && echo -e "\033[32m[*] colorscheme is saved: $XTHEME_SAVE\033[0m"
+        && ok "colorscheme is saved to $XTHEME_SAVE"
 fi
 
 # Apply changes ---------------------------------------------------------------
 if [[ "${XTHEME_INSTALL}" ]]; then
-    mkdir -p "$XTHEME_CACHE"
 
-    # Modules...
-    template   gtk-icon-theme/Tela
-    template   gtk-theme/FlatColor
-    template   kvantum
-    template   telegram
-
-    # Templates...
-    template   colors
-    template   colors-gtk.css
-    template   colors-gtk.rc
-    template   colors-kitty.conf
-    template   colors-rofi.rasi
-    template   colors-vscode.json
-    template   colors-xfce4-terminal.theme
-    template   colors.css
-    template   colors.json
-    template   colors.sh
-    template   colors.vim
-    template   colors.Xresources
+    apply_templates
 
     # Post-install
-    xrdb -merge "$XTHEME_CACHE/colors.Xresources" \
-        && echo -e "\033[36m[+] xrdb --merge... is completed!\033[0m" \
-        || echo -e "\033[31m[-] xrdb --merge... is not completed!\033[0m"
+    #xrdb -merge "$XTHEME_CACHE/colors.Xresources" \
+        #&& ok "xrdb --merge... is completed!" \
+        #|| error "xrdb --merge... is not completed!"
 
-
-    echo -e "\033[32m[!] installation is completed to ${XTHEME_CACHE/$HOME/\~}!\033[0m"
+    echo "Installation is completed to ${XTHEME_CACHE/$HOME/\~}!"
 fi
