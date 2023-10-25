@@ -242,13 +242,13 @@ import_colorscheme_colors() {
 
 import_image_colors() {
     local image="${1/\~/$HOME}"
-	local colors
+    local colors
 
-	type -p convert >/dev/null 2>&1 \
-		|| fatal "imagemagick not found"
+    type -p convert >/dev/null 2>&1 \
+        || fatal "imagemagick not found"
 
     [[ -e "$image" ]] \
-		|| fatal "image '${1}' not found"
+        || fatal "image '${1}' not found"
 
     colors=(
         $(convert "$image" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null || fatal)

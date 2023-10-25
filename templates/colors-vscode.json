@@ -1,46 +1,46 @@
 {
-	"name": "vs-wal",
-	"type": "dark",
-	"colors": {
-		"editor.background": "${background}",
-		"editor.foreground": "${foreground}",
-		"activityBarBadge.background": "${color9}",
-		"sideBarTitle.foreground": "${foreground}",
-		"activityBar.background": "${background}",
-		"activityBar.dropBackground": "${color3}",
-		"activityBar.foreground": "${foreground}",
-		"activityBarBadge.foreground": "${foreground}",
-		"badge.foreground": "${foreground}",
-		"badge.background": "${background}",
-		"sideBar.background": "${background}",
-		"sideBar.foreground": "${foreground}",
-		"statusBar.background": "${background}",
-		"statusBar.debuggingBackground": "${foreground}",
-		"statusBar.debuggingForeground": "${background}",
-		"statusBar.noFolderForeground": "${foreground}",
-		"statusBar.noFolderBackground": "${background}",
-		"statusBar.foreground": "${foreground}",
-		"tab.activeBorder": "${color0}",
-		"tab.unfocusedActiveBorder": "${color0}",
-		"tab.activeBackground": "${foreground}10",
-		"tab.activeForeground": "${foreground}",
-		"tab.inactiveBackground": "${background}",
-		"tab.inactiveForeground": "${foreground}",
-		"tab.unfocusedActiveForeground": "${color1}",
-		"tab.unfocusedInactiveForeground": "${background}",
-		"input.background": "${background}",
-		"input.foreground": "${foreground}",
-		"button.background": "${color1}",
-		"button.foreground": "${foreground}",
-		"editorGroupHeader.tabsBackground": "${background}",
-		"editorGroup.dropBackground": "${color1}60",
-		"textLink.activeForeground": "${color3}",
-		"textLink.foreground": "${color2}",
-		"list.activeSelectionBackground": "${color2}",
-		"list.focusBackground": "${color2}",
-		"list.hoverForeground": "${foreground}",
-		"list.hoverBackground": "${color2}30",
-		"list.dropBackground": "${color2}30",
+    "name": "vs-wal",
+    "type": "dark",
+    "colors": {
+        "editor.background": "${background}",
+        "editor.foreground": "${foreground}",
+        "activityBarBadge.background": "${color9}",
+        "sideBarTitle.foreground": "${foreground}",
+        "activityBar.background": "${background}",
+        "activityBar.dropBackground": "${color3}",
+        "activityBar.foreground": "${foreground}",
+        "activityBarBadge.foreground": "${foreground}",
+        "badge.foreground": "${foreground}",
+        "badge.background": "${background}",
+        "sideBar.background": "${background}",
+        "sideBar.foreground": "${foreground}",
+        "statusBar.background": "${background}",
+        "statusBar.debuggingBackground": "${foreground}",
+        "statusBar.debuggingForeground": "${background}",
+        "statusBar.noFolderForeground": "${foreground}",
+        "statusBar.noFolderBackground": "${background}",
+        "statusBar.foreground": "${foreground}",
+        "tab.activeBorder": "${color0}",
+        "tab.unfocusedActiveBorder": "${color0}",
+        "tab.activeBackground": "${foreground}10",
+        "tab.activeForeground": "${foreground}",
+        "tab.inactiveBackground": "${background}",
+        "tab.inactiveForeground": "${foreground}",
+        "tab.unfocusedActiveForeground": "${color1}",
+        "tab.unfocusedInactiveForeground": "${background}",
+        "input.background": "${background}",
+        "input.foreground": "${foreground}",
+        "button.background": "${color1}",
+        "button.foreground": "${foreground}",
+        "editorGroupHeader.tabsBackground": "${background}",
+        "editorGroup.dropBackground": "${color1}60",
+        "textLink.activeForeground": "${color3}",
+        "textLink.foreground": "${color2}",
+        "list.activeSelectionBackground": "${color2}",
+        "list.focusBackground": "${color2}",
+        "list.hoverForeground": "${foreground}",
+        "list.hoverBackground": "${color2}30",
+        "list.dropBackground": "${color2}30",
 
         "editorBracketHighlight.foreground1": "${color7}",
         "editorBracketHighlight.foreground2": "${color7}",
@@ -49,26 +49,26 @@
         "editorBracketHighlight.foreground5": "${color7}",
         "editorBracketHighlight.foreground6": "${color7}",
 
-		"terminal.background": "${background}",
-		"terminal.foreground": "${foreground}",
-		"terminal.ansiBlack": "${color0}",
-		"terminal.ansiRed": "${color1}",
-		"terminal.ansiGreen": "${color2}",
-		"terminal.ansiYellow": "${color3}",
-		"terminal.ansiBlue": "${color4}",
-		"terminal.ansiMagenta": "${color5}",
-		"terminal.ansiCyan": "${color6}",
-		"terminal.ansiWhite": "${color7}",
-		"terminal.ansiBrightBlack": "${color8}",
-		"terminal.ansiBrightRed": "${color9}",
-		"terminal.ansiBrightGreen": "${color10}",
-		"terminal.ansiBrightYellow": "${color11}",
-		"terminal.ansiBrightBlue": "${color12}",
-		"terminal.ansiBrightMagenta": "${color13}",
-		"terminal.ansiBrightCyan": "${color14}",
-		"terminal.ansiBrightWhite": "${color15}"
-	},
-	"tokenColors": [
+        "terminal.background": "${background}",
+        "terminal.foreground": "${foreground}",
+        "terminal.ansiBlack": "${color0}",
+        "terminal.ansiRed": "${color1}",
+        "terminal.ansiGreen": "${color2}",
+        "terminal.ansiYellow": "${color3}",
+        "terminal.ansiBlue": "${color4}",
+        "terminal.ansiMagenta": "${color5}",
+        "terminal.ansiCyan": "${color6}",
+        "terminal.ansiWhite": "${color7}",
+        "terminal.ansiBrightBlack": "${color8}",
+        "terminal.ansiBrightRed": "${color9}",
+        "terminal.ansiBrightGreen": "${color10}",
+        "terminal.ansiBrightYellow": "${color11}",
+        "terminal.ansiBrightBlue": "${color12}",
+        "terminal.ansiBrightMagenta": "${color13}",
+        "terminal.ansiBrightCyan": "${color14}",
+        "terminal.ansiBrightWhite": "${color15}"
+    },
+    "tokenColors": [
         {
             "settings": {
                 "background": "${background}",
@@ -105,7 +105,7 @@
                 "support",
                 "storage",
                 "meta",
-				"support.class"
+                "support.class"
             ],
             "settings": {
                 "foreground": "$color7"
@@ -118,28 +118,28 @@
                 "foreground": "$color4"
             }
         },
-		{
-			"name": "Type",
-			"scope": [
-				"storage.type",
+        {
+            "name": "Type",
+            "scope": [
+                "storage.type",
                 "support.type",
                 "entity.other.attribute-name"
-			],
-			"settings": {
-				"foreground": "$color3"
-			}
-		},
-        
-		{
-			"name": "Invalid",
-			"scope": [
-				"invalid"
-			],
-			"settings": {
-				"foreground": "$#eeeeee",
-				"background": "$color1"
-			}
-		},
+            ],
+            "settings": {
+                "foreground": "$color3"
+            }
+        },
+
+        {
+            "name": "Invalid",
+            "scope": [
+                "invalid"
+            ],
+            "settings": {
+                "foreground": "$#eeeeee",
+                "background": "$color1"
+            }
+        },
 
         {
             "scope": "token.info-token",
@@ -172,5 +172,5 @@
                 "foreground": "#FD971F"
             }
         }
-	]
+    ]
 }
