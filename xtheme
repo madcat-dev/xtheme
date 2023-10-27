@@ -10,6 +10,7 @@ export XTHEME_CACHE=${XTHEME_CACHE:-$HOME/.cache/xtheme}
 export XTHEME_CONFIG=${XTHEME_CONFIG:-$HOME/.config/xtheme}
 export XTHEME_PREFER_DARK_THEME=${XTHEME_PREFER_DARK_THEME:-1}
 export XTHEME_CURSOR_COLOR="#FFA501"
+export DEBUG=${DEBUG}
 
 WELCOME='
  `.`    `.`  `........`  `.`    `.   `........   ``     `.`  `........
@@ -38,16 +39,19 @@ Mandatory arguments to long options are mandatory for short options too
     --help                          display this help and exit
 '
 # -----------------------------------------------------------------------------
+export STDERR=/dev/null
+[[ ${DEBUG} ]] && STDERR=/dev/stderr
+
 xrdbq() {
     xrdb -query | grep -w "${1}:" | head -n1 | cut -f 2
 }
 
 min() {
-    printf "%s\n" $@ | sort -g | head -n1 2>/dev/null
+    printf "%s\n" $@ | sort -g | head -n1 2>$STDERR
 }
 
 max() {
-    printf "%s\n" $@ | sort -gr | head -n1 2>/dev/null
+    printf "%s\n" $@ | sort -gr | head -n1 2>$STDERR
 }
 
 lim() {
@@ -59,7 +63,7 @@ lim() {
 
 fatal() {
     echo -e "\033[31;1m[!] ${@}\033[0m" >&2
-    echo -e "    trace: ${FUNCNAME[*]}" >&2
+    echo -e "    trace: ${FUNCNAME[*]}" >$STDERR
     kill -9 $$ && sleep 9999
 }
 
@@ -233,9 +237,9 @@ import_Xresources_colors() {
 }
 
 import_colorscheme_colors() {
-    local scheme=$(find "${1:--}"* "$XTHEME_CONFIG/colorschemes/${1:--}"* 2>/dev/null | head -n1)
+    local scheme=$(find "${1:--}"* "$XTHEME_CONFIG/colorschemes/${1:--}"* 2>$STDERR | head -n1)
 
-    source "$scheme" \
+    source "$scheme" 2>$STDERR \
         && XTHEME_NAME=$(basename $scheme) \
         || fatal "colorscheme '${1}' not imported!"
 }
@@ -244,14 +248,14 @@ import_image_colors() {
     local image="${1/\~/$HOME}"
     local colors
 
-    type -p convert >/dev/null 2>&1 \
+    type -p convert >$STDERR 2>&1 \
         || fatal "imagemagick not found"
 
     [[ -e "$image" ]] \
         || fatal "image '${1}' not found"
 
     colors=(
-        $(convert "$image" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>/dev/null || fatal)
+        $(convert "$image" +dither -colors 16 -unique-colors txt:- | grep -E -o " \#.{6}" 2>$STDERR || fatal)
     )
 
     background=$(rgb value ${colors[0]}  12)
@@ -379,8 +383,8 @@ apply() {
     [[ ! -e "$srce" ]] \
         && return $(error "Template '${srce/$HOME/\~}' not existing!")
 
-    rm    -f "$dest" > /dev/null 2>&1
-    mkdir -p "$(dirname "${dest}")" > /dev/null 2>&1
+    rm    -f "$dest" >/dev/null 2>&1
+    mkdir -p "$(dirname "${dest}")" >/dev/null 2>&1
 
     while read -r data; do
         local IFS=$'\x1B'
@@ -409,11 +413,11 @@ apply_templates() {
                 apply_templates "$item"
                 continue
             fi
-            "$item/install.sh" 2>/dev/null \
+            "$item/install.sh" 2>$STDERR \
                 && ok "template .../$name is installed" \
                 || error "template .../$name is not installed!"
         else
-            apply "$item" "$XTHEME_CACHE/$name" 2>/dev/null \
+            apply "$item" "$XTHEME_CACHE/$name" 2>$STDERR \
                 && ok "template .../$name is installed" \
                 || error "template .../$name is not installed!"
         fi
@@ -428,7 +432,7 @@ apply_templates() {
 export PATH=$(dirname "${BASH_SOURCE:-$0}"):$PATH
 
 mkdir -p "$XTHEME_CACHE"
-mkdir -p "$XTHEME_CONFIG"/{templates,colorscheme}
+mkdir -p "$XTHEME_CONFIG"/{templates,colorschemes}
 
 export background foreground cursor
 for i in {0..15}; do export color"${i}"; done
@@ -505,7 +509,7 @@ preview
 
 # Save ------------------------------------------------------------------------
 if [[ "${XTHEME_SAVE}" ]]; then
-    template colors.sh "$XTHEME_SAVE" > /dev/null \
+    apply "$XTHEME_CONFIG/templates/colors.sh" "$XTHEME_SAVE" >$STDERR \
         && ok "colorscheme is saved to $XTHEME_SAVE"
 fi
 
