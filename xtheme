@@ -348,16 +348,16 @@ preview() {
 
     echo -n "background: "
     printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $background)
-    printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $foreground) 
+    printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $foreground)
     echo -en "  $background  \033[0m  "
 
     echo -n "foreground: "
-    printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $foreground) 
+    printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $foreground)
     printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $background)
     echo -en "  $foreground  \033[0m  "
 
     echo -n "cursor: "
-    printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $cursor) 
+    printf "\033[38;2;%03d;%03d;%03dm" $(rgb_from_hex $cursor)
     printf "\033[48;2;%03d;%03d;%03dm" $(rgb_from_hex $background)
     echo -en "  $cursor  \033[0m  "
 
@@ -493,15 +493,18 @@ clear_colors
 
 if [[ "${XTHEME_NAME}" ]]; then
     import_colorscheme_colors "$XTHEME_NAME" \
-        && ok "colorscheme $XTHEME_NAME is imported"
+        && ok "colorscheme ${XTHEME_NAME/$HOME/\~} is imported"
 elif [[ "${XTHEME_IMAGE}" ]]; then
-    import_image_colors "$XTHEME_IMAGE"
+    import_image_colors "$XTHEME_IMAGE" \
+        && ok "colorscheme from image ${XTHEME_IMAGE/$HOME/\~} is imported"
 else
-    import_Xresources_colors
+    import_Xresources_colors \
+        && ok "colorscheme from Xresources is imported"
 fi
 
 if [[ "${XTHEME_MERGE}" ]]; then
-    import_colorscheme_colors "$XTHEME_MERGE"
+    import_colorscheme_colors "$XTHEME_MERGE" \
+        && ok "colorscheme is merged with ${XTHEME_MERGE/$HOME/\~}"
 fi
 
 make_colors
@@ -510,18 +513,13 @@ preview
 # Save ------------------------------------------------------------------------
 if [[ "${XTHEME_SAVE}" ]]; then
     apply "$XTHEME_CONFIG/templates/colors.sh" "$XTHEME_SAVE" >$STDERR \
-        && ok "colorscheme is saved to $XTHEME_SAVE"
+        && ok "colorscheme is saved to ${XTHEME_SAVE/$HOME/\~}"
 fi
 
 # Apply changes ---------------------------------------------------------------
 if [[ "${XTHEME_INSTALL}" ]]; then
 
-    apply_templates
-
-    # Post-install
-    xrdb -merge "$XTHEME_CACHE/colors.Xresources" \
-        && ok "xrdb --merge... is completed!" \
-        || error "xrdb --merge... is not completed!"
+    apply_templates || exit 1
 
     echo "Installation is completed to ${XTHEME_CACHE/$HOME/\~}!"
 fi
