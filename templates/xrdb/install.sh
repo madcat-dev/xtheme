@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Default installer
+# Xresources installer
 #     Module from 'xtheme'
 source xtheme || exit 1 # import xtheme as library
 TEMPLATE=$(dirname "${BASH_SOURCE:-$0}")
