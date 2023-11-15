@@ -19,4 +19,4 @@ else
 fi
 
 cat   "$TERMINAL_THEME/xtheme.theme" | grep Color >> "$TERMINAL_RC/terminalrc.tmp" || exit 1
-cp -f "$TERMINAL_RC/terminalrc.tmp" "$TERMINAL_RC/terminalrc" || exit 1
+mv -f "$TERMINAL_RC/terminalrc.tmp" "$TERMINAL_RC/terminalrc" || exit 1
