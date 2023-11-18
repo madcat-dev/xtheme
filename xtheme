@@ -260,8 +260,8 @@ import_image_colors() {
 
     local l=${#colors[*]}
 
-    background=$(rgb value ${colors[0]}  12)
-    foreground=$(rgb value ${colors[$(( $l - 1 ))]} 78)
+    background=$(rgb value ${colors[0]} 10)
+    foreground=$(rgb value ${colors[$(( $l - 1 ))]} 80)
 
     color0=$(rgb value ${colors[0]} 17)
     color1=${colors[$(( $l - 7 ))]}
@@ -280,6 +280,13 @@ modify_colors() {
         declare -g "$colorD"=$(rgb ${1} ${!colorD} ${2})
         declare -g "$colorL"=$(rgb ${1} ${!colorL} ${2})
     done
+
+    if [[ ${3} ]]; then
+        background=$(rgb ${1} $background ${2})
+        foreground=$(rgb ${1} $foreground ${2})
+        color0=$(rgb ${1} $color0 ${2})
+        color8=$(rgb ${1} $color8 ${2})
+    fi
 }
 
 make_colors() {
@@ -337,9 +344,9 @@ make_colors() {
     fi
 
     [[ ${XTHEME_HUE} ]] \
-        && modify_colors hue $XTHEME_HUE
+        && modify_colors hue $XTHEME_HUE True
     [[ ${XTHEME_SATURATION} ]] \
-        && modify_colors saturation $XTHEME_SATURATION
+        && modify_colors saturation $XTHEME_SATURATION True
     [[ ${XTHEME_VALUE} ]] \
         && modify_colors value $XTHEME_VALUE
 }
