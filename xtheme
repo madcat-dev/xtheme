@@ -520,8 +520,6 @@ fi
 
 # Apply changes ---------------------------------------------------------------
 if [[ "${XTHEME_INSTALL}" ]]; then
-
     apply_templates || exit 1
-
     echo "Installation is completed to ${XTHEME_CACHE/$HOME/\~}!"
 fi
