@@ -10,6 +10,8 @@ export XTHEME_CACHE=${XTHEME_CACHE:-$HOME/.cache/xtheme}
 export XTHEME_CONFIG=${XTHEME_CONFIG:-$HOME/.config/xtheme}
 export XTHEME_PREFER_DARK_THEME=${XTHEME_PREFER_DARK_THEME:-1}
 export XTHEME_CURSOR_COLOR="#FFA501"
+export XTHEME_BACKGROUND_VALUE=10
+export XTHEME_FOREGROUND_VALUE=80
 export DEBUG=${DEBUG}
 
 WELCOME='
@@ -260,17 +262,17 @@ import_image_colors() {
 
     local l=${#colors[*]}
 
-    background=$(rgb value ${colors[0]} 10)
-    foreground=$(rgb value ${colors[$(( $l - 1 ))]} 80)
+    background=$(rgb value ${colors[0]} $XTHEME_BACKGROUND_VALUE)
+    foreground=$(rgb value ${colors[$(( $l - 1 ))]} $XTHEME_FOREGROUND_VALUE)
 
-    color0=$(rgb value ${colors[0]} 17)
+    color0=$(rgb value $background +5)
     color1=${colors[$(( $l - 7 ))]}
     color2=${colors[$(( $l - 6 ))]}
     color3=${colors[$(( $l - 5 ))]}
     color4=${colors[$(( $l - 4 ))]}
     color5=${colors[$(( $l - 3 ))]}
     color6=${colors[$(( $l - 2 ))]}
-    color7=$(rgb value ${colors[$(( $l - 1 ))]} 88)
+    color7=$(rgb value $foreground +5)
 }
 
 modify_colors() {
@@ -285,7 +287,9 @@ modify_colors() {
         background=$(rgb ${1} $background ${2})
         foreground=$(rgb ${1} $foreground ${2})
         color0=$(rgb ${1} $color0 ${2})
+        color7=$(rgb ${1} $color7 ${2})
         color8=$(rgb ${1} $color8 ${2})
+        color15=$(rgb ${1} $color15 ${2})
     fi
 }
 
@@ -314,23 +318,23 @@ make_colors() {
     if [[ ! ${color7} ]]; then
         color7=${colors[7]}
         color15=
-        [[ ${foreground} ]] && color7=$(rgb value $foreground +10)
+        [[ ${foreground} ]] && color7=$(rgb value $foreground +5)
     fi
 
     if [[ ! ${background} ]]; then
-        background=$(rgb value $color0 12)
+        background=$(rgb value $color0 $XTHEME_BACKGROUND_VALUE)
         color0=$(rgb value $background +5)
         color8=
     fi
     if [[ ! ${foreground} ]]; then
-        foreground=$(rgb value $color7  78)
-        color7=$(rgb value $foreground +10)
+        foreground=$(rgb value $color7 $XTHEME_FOREGROUND_VALUE)
+        color7=$(rgb value $foreground +5)
         color15=
     fi
 
-    for i in {0..7}; do
-        local colorD="color$(( i ))"
-        local colorL="color$((i+8))"
+    for i in {8..15}; do
+        local colorD="color$((i-8))"
+        local colorL="color$(( i ))"
         declare -g "$colorL"=${!colorL:-$(rgb value ${!colorD} +25)}
     done
 
