@@ -37,6 +37,8 @@ Mandatory arguments to long options are mandatory for short options too
                                     VALUE: [+-]{integer value}[%]
     -s, --save       DESTINATION    save colorscheme to DESTINATION
     --light                         generate a light colorscheme
+    --fg             VALUE          set foreground modify color value
+    --bg             VALUE          set background modify color value
     --install                       install colorscheme
     --help                          display this help and exit
 '
@@ -483,6 +485,14 @@ while [ -n "${1}" ]; do
             ;;
         --light)
             XTHEME_PREFER_DARK_THEME=
+            ;;
+        --fg)
+            XTHEME_FOREGROUND_VALUE="${2}"
+            shift
+            ;;
+        --bg)
+            XTHEME_BACKGROUND_VALUE="${2}"
+            shift
             ;;
         --install)
             XTHEME_INSTALL=Yes
