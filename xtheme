@@ -30,7 +30,7 @@ Show preview of COLORSCHEME, or show "Xresources" imported colorscheme
 
 Mandatory arguments to long options are mandatory for short options too
     -i, --image      IMAGE          import colorscheme from IMAGE
-    -m, --merge      THEME          merge colorscheme with THEME
+    -p, --patch      THEME          patching colorscheme with THEME
     -H, --hue        VALUE          change hue
     -S, --saturation VALUE          change satuation
     -V, --value      VALUE          change value
@@ -463,8 +463,8 @@ while [ -n "${1}" ]; do
             XTHEME_NAME=
             shift
             ;;
-        -m|--merge)
-            XTHEME_MERGE="${2}"
+        -p|--patch)
+            XTHEME_PATCH="${2}"
             shift
             ;;
         -H|--hue)
@@ -525,9 +525,9 @@ else
         && ok "colorscheme from Xresources is imported"
 fi
 
-if [[ "${XTHEME_MERGE}" ]]; then
-    import_colorscheme_colors "$XTHEME_MERGE" \
-        && ok "colorscheme is merged with ${XTHEME_MERGE/$HOME/\~}"
+if [[ "${XTHEME_PATCH}" ]]; then
+    import_colorscheme_colors "$XTHEME_PATCH" \
+        && ok "colorscheme is merged with ${XTHEME_PATCH/$HOME/\~}"
 fi
 
 make_colors
