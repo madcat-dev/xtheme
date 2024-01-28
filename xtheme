@@ -351,8 +351,10 @@ make_colors() {
 
     [[ ${XTHEME_HUE} ]] \
         && modify_colors hue $XTHEME_HUE True
+
     [[ ${XTHEME_SATURATION} ]] \
         && modify_colors saturation $XTHEME_SATURATION True
+
     [[ ${XTHEME_VALUE} ]] \
         && modify_colors value $XTHEME_VALUE
 }
