@@ -69,6 +69,7 @@ fatal() {
     echo -e "\033[31;1m[!] ${@}\033[0m" >&2
     echo -e "    trace: ${FUNCNAME[*]}" >$STDERR
     kill -9 $$ && sleep 9999
+    exit 1
 }
 
 error() {
